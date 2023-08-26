@@ -7,8 +7,26 @@ screenY = 720
 
 attractiveObjects = pygame.sprite.Group()
 
+#Sprites
+tilesetSprite = "Sprites/tilemap.png"
+playerSprite = "Sprites/player.png"
 
+#Tileset
+tileset = pygame.image.load(tilesetSprite).convert_alpha()
+tileWidth = 16
+tileHeight = 16
 
+map = [
+    [0,0,0],
+    [1,1,1],
+    [2,2,2],
+]
+
+#não é uma matriz, é um vetor de 3 vetores. por isso o tamanho da linha 0, pra idicar a largura, e o tamanho do array principal pra definir a altura.
+mapWidth = len(map[0] * tileWidth)
+mapHeight = len(map * tileHeight)
+
+#HUD
 scoreText = 0
 scoreTextColor = (255, 255, 255)
 
@@ -24,7 +42,7 @@ class AttactiveOBJ(pygame.sprite.Sprite):
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y, playerSpeed):
         super().__init__()
-        self.image = pygame.image.load('Sprites/player.png').convert_alpha()
+        self.image = pygame.image.load(playerSprite).convert_alpha()
 
         self.rect = self.image.get_rect()
         self.rect.centerx = x
@@ -77,7 +95,7 @@ while True:
         pygame.draw.line(screen, (255, 0, 0), playerPos, attractiveOBJ.rect.center)
 
     screen.blit(scoreTextSurface, scoreTextRect)
-    attractiveObjects.draw(screen)
+    attractiveObjects.draw(screen)  
     screen.blit(player.image, player.rect)
     clock.tick(60)
     pygame.display.update()
