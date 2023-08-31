@@ -2,24 +2,30 @@ import pygame
 import sys
 import math
 
-screenX = 1280
-screenY = 720
+#region Inicio do codigo
+
+pygame.init()
+screen = pygame.display.set_mode((640, 640),0,32)
+pygame.display.set_caption("SMAUG-2")
+clock = pygame.time.Clock()
+
+#endregion
 
 attractiveObjects = pygame.sprite.Group()
 
 #Sprites
-tilesetSprite = "Sprites/tilemap.png"
 playerSprite = "Sprites/player.png"
 
 #Tileset
+tileWidth = 128
+tileHeight = 128
+tilesetSprite = "Sprites/tileset.png"
 tileset = pygame.image.load(tilesetSprite).convert_alpha()
-tileWidth = 16
-tileHeight = 16
 
 map = [
-    [0,0,0],
-    [1,1,1],
-    [2,2,2],
+    [0,0,0,0],
+    [1,1,1,0],
+    [0,0,0,0],
 ]
 
 #não é uma matriz, é um vetor de 3 vetores. por isso o tamanho da linha 0, pra idicar a largura, e o tamanho do array principal pra definir a altura.
@@ -30,7 +36,7 @@ mapHeight = len(map * tileHeight)
 scoreText = 0
 scoreTextColor = (255, 255, 255)
 
-class AttactiveOBJ(pygame.sprite.Sprite):
+class AttactiveOBJ(pygame.sprite.Sprite): #Classe do objeto atraente
     def __init__(self, x, y):
         super().__init__()
         self.image = pygame.image.load('Sprites/object.png').convert_alpha()
@@ -39,7 +45,7 @@ class AttactiveOBJ(pygame.sprite.Sprite):
         self.rect.centerx = x
         self.rect.centery = y
 
-class Player(pygame.sprite.Sprite):
+class Player(pygame.sprite.Sprite): #Classe do player
     def __init__(self, x, y, playerSpeed):
         super().__init__()
         self.image = pygame.image.load(playerSprite).convert_alpha()
@@ -49,29 +55,36 @@ class Player(pygame.sprite.Sprite):
         self.rect.centery = y
         self.playerSpeed = playerSpeed
 
-pygame.init()
-screen = pygame.display.set_mode((screenX, screenY))
-pygame.display.set_caption("SMAUG-2")
-
-clock = pygame.time.Clock()
+playerStartPos = (0, 0)
 
 font = pygame.font.SysFont('Arial', 20)
-player = Player(screenX/2, screenY/2, 5)
+player = Player(playerStartPos[0], playerStartPos[1], 2)
 
-while True:
+angle = 0
+
+tilemap = pygame.Surface((640, 640))
+
+while True: #Game Loop
+    
+    screen.fill((0, 0, 0))
+
+    #Atualizações 
+    clock.tick(60)
+    playerPos = player.rect.center
+    mousePos = pygame.mouse.get_pos()
+
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+        if event.type == pygame.QUIT: #Fecha o jogo
             pygame.quit()
             sys.exit()
         
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1: #Cria objeto no lugar do clique
             if not attractiveObjects:
                 attractiveOBJ = AttactiveOBJ(mousePos[0], mousePos[1])
                 attractiveObjects.add(attractiveOBJ)
                 scoreText += 1
 
-                # Atualizando a posição do player
-    if attractiveObjects:
+    if attractiveObjects: #move o player em direção ao objeto
         dx = attractiveOBJ.rect.centerx - player.rect.centerx
         dy = attractiveOBJ.rect.centery - player.rect.centery
         distance = math.sqrt(dx ** 2 + dy ** 2)
@@ -79,23 +92,44 @@ while True:
             player.rect.centerx += player.playerSpeed * dx / distance
             player.rect.centery += player.playerSpeed * dy / distance
 
-        else:
+        else: #destroi o objeto quando o player chega nele
             attractiveOBJ.kill()
 
-    playerPos = player.rect.center
-    mousePos = pygame.mouse.get_pos()
+    #desenha o mapa
+    
+    tileRects = []
+    y = 0
+    for row in map:
+        x = 0
+        for tile in row:
+            if tile == 1:
+                tilemap.blit(tileset, (x * tileWidth, y * tileHeight))
 
+            if tile != 0:
+                tileRects.append(pygame.Rect(x * tileWidth, y * tileHeight, tileWidth, tileHeight))
+            x += 1
+        y += 1
+
+    scaledTilemap = pygame.transform.scale(tilemap, (640,640))
+    screen.blit(scaledTilemap, (0,0))
+
+
+    #region Score
     scoreTextSurface = font.render(str(scoreText), True, scoreTextColor)
     scoreTextRect = scoreTextSurface.get_rect()
     scoreTextRect.center = (100, 200)
+    #endregion
 
-    screen.fill((0, 0, 0))
-    
+
+
     if attractiveObjects:
         pygame.draw.line(screen, (255, 0, 0), playerPos, attractiveOBJ.rect.center)
 
     screen.blit(scoreTextSurface, scoreTextRect)
-    attractiveObjects.draw(screen)  
-    screen.blit(player.image, player.rect)
-    clock.tick(60)
-    pygame.display.update()
+    attractiveObjects.draw(screen)
+
+    playerRotatedImg = pygame.transform.rotate(player.image, angle)
+    playerRotatedImgRect = playerRotatedImg.get_rect(center = player.rect.center)
+    screen.blit(playerRotatedImg, playerRotatedImgRect)
+ 
+    pygame.display.update() #Atualiza a tela
