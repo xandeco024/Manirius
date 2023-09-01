@@ -23,11 +23,16 @@ tilesetSprite = "Sprites/tileset.png"
 tileset = pygame.image.load(tilesetSprite).convert_alpha()
 
 map = [
-    [1,0,1,0,1],
-    [1,0,0,0,1],
-    [1,0,0,0,0],
-    [1,1,1,1,0],
-    [1,1,1,1,0]
+    [31,22,63,22,22,22,22,22,22,33],
+    [13,42,71,42,42,42,42,42,42,11],
+    [13,42,71,42,82,42,42,42,42,11],
+    [13,42,81,42,42,42,42,42,42,11],
+    [13,42,42,42,42,42,42,42,42,11],
+    [13,42,42,42,42,42,42,42,42,11],
+    [13,42,42,42,42,42,42,42,42,11],
+    [13,42,42,42,42,42,91,92,92,72],
+    [13,42,42,42,42,42,42,42,42,43],
+    [51,2,2,2,2,2,2,2,2,53]
 ]
 
 #não é uma matriz, é um vetor de 3 vetores. por isso o tamanho da linha 0, pra idicar a largura, e o tamanho do array principal pra definir a altura.
@@ -54,7 +59,7 @@ class Player(pygame.sprite.Sprite): #Classe do player
         self.rect.centery = y
         self.playerSpeed = playerSpeed
 
-playerStartPos = (0, 0)
+playerStartPos = (3/2 * 64, 3/2 * 64)
 
 font = pygame.font.SysFont('Arial', 20)
 player = Player(playerStartPos[0], playerStartPos[1], 2)
@@ -62,6 +67,22 @@ player = Player(playerStartPos[0], playerStartPos[1], 2)
 angle = 0
 
 tilemap = pygame.Surface((640, 640))
+
+
+#region cut tiles
+tiles = []
+
+tilesetSize = tileset.get_size()
+tiles.insert(0, pygame.Surface((tileWidth,tileHeight)).convert_alpha())
+
+
+for tileColumn in range(int(tilesetSize[0] / tileWidth)):
+    for tileRow in range(int(tilesetSize[1] / tileHeight)):
+        tile = pygame.Surface((tileWidth,tileHeight)).convert_alpha()
+        tile.blit(tileset, (0,0), (tileRow * 64, tileColumn * 64, tileWidth, tileHeight))
+        tiles.append(tile)
+
+#endregion
 
 while True: #Game Loop
     
@@ -94,35 +115,24 @@ while True: #Game Loop
         else: #destroi o objeto quando o player chega nele
             attractiveOBJ.kill()
 
-    #region cut tiles
-    tiles = []
-
-    tile = pygame.Surface((tileWidth,tileHeight)).convert_alpha()
-    tile.blit(tileset, (0,0), (0 * 64, 0, tileWidth, tileHeight))
-
-
-    #endregion
-
-
     #desenha o mapa
     
-    '''
+
     tileRects = []
     y = 0
     for row in map:
         x = 0
-        for tile in row:
-            if tile == 1:
-                tilemap.blit(tilemap, (x * tileWidth, y * tileHeight), (0,0, tileWidth, tileHeight))
-
-            if tile != 0:
+        for tileIndex in row:
+            tilemap.blit(tiles[tileIndex], (x * tileWidth, y * tileHeight))
+            if tileIndex != 0 and tileIndex != 42:
+                
                 tileRects.append(pygame.Rect(x * tileWidth, y * tileHeight, tileWidth, tileHeight))
             x += 1
         y += 1
 
-    scaledTilemap = pygame.transform.scale(tilemap, (640,640))
-    screen.blit(scaledTilemap, (0,0))
-    '''
+    #tilemap = pygame.transform.scale(tilemap, (640,640))
+    screen.blit(tilemap, (0,0))
+
 
 
     #region Score
