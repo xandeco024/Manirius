@@ -17,21 +17,20 @@ attractiveObjects = pygame.sprite.Group()
 playerSprite = "Sprites/player.png"
 
 #Tileset
-tileWidth = 128
-tileHeight = 128
+tileWidth = 64
+tileHeight = 64
 tilesetSprite = "Sprites/tileset.png"
 tileset = pygame.image.load(tilesetSprite).convert_alpha()
 
 map = [
-    [0,0,0,0],
-    [1,1,1,0],
-    [0,0,0,0],
+    [1,0,1,0,1],
+    [1,0,0,0,1],
+    [1,0,0,0,0],
+    [1,1,1,1,0],
+    [1,1,1,1,0]
 ]
 
 #não é uma matriz, é um vetor de 3 vetores. por isso o tamanho da linha 0, pra idicar a largura, e o tamanho do array principal pra definir a altura.
-mapWidth = len(map[0] * tileWidth)
-mapHeight = len(map * tileHeight)
-
 #HUD
 scoreText = 0
 scoreTextColor = (255, 255, 255)
@@ -66,7 +65,7 @@ tilemap = pygame.Surface((640, 640))
 
 while True: #Game Loop
     
-    screen.fill((0, 0, 0))
+    screen.fill((100, 100, 100))
 
     #Atualizações 
     clock.tick(60)
@@ -95,15 +94,26 @@ while True: #Game Loop
         else: #destroi o objeto quando o player chega nele
             attractiveOBJ.kill()
 
+    #region cut tiles
+    tiles = []
+
+    tile = pygame.Surface((tileWidth,tileHeight)).convert_alpha()
+    tile.blit(tileset, (0,0), (0 * 64, 0, tileWidth, tileHeight))
+
+
+    #endregion
+
+
     #desenha o mapa
     
+    '''
     tileRects = []
     y = 0
     for row in map:
         x = 0
         for tile in row:
             if tile == 1:
-                tilemap.blit(tileset, (x * tileWidth, y * tileHeight))
+                tilemap.blit(tilemap, (x * tileWidth, y * tileHeight), (0,0, tileWidth, tileHeight))
 
             if tile != 0:
                 tileRects.append(pygame.Rect(x * tileWidth, y * tileHeight, tileWidth, tileHeight))
@@ -112,6 +122,7 @@ while True: #Game Loop
 
     scaledTilemap = pygame.transform.scale(tilemap, (640,640))
     screen.blit(scaledTilemap, (0,0))
+    '''
 
 
     #region Score
@@ -119,8 +130,6 @@ while True: #Game Loop
     scoreTextRect = scoreTextSurface.get_rect()
     scoreTextRect.center = (100, 200)
     #endregion
-
-
 
     if attractiveObjects:
         pygame.draw.line(screen, (255, 0, 0), playerPos, attractiveOBJ.rect.center)
@@ -131,5 +140,5 @@ while True: #Game Loop
     playerRotatedImg = pygame.transform.rotate(player.image, angle)
     playerRotatedImgRect = playerRotatedImg.get_rect(center = player.rect.center)
     screen.blit(playerRotatedImg, playerRotatedImgRect)
- 
+
     pygame.display.update() #Atualiza a tela
