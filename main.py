@@ -59,6 +59,26 @@ class Player(pygame.sprite.Sprite): #Classe do player
         self.rect.centery = y
         self.playerSpeed = playerSpeed
 
+def cutSpritesheet(spritesheet, spriteWidth, spriteHeight):
+    sheet = pygame.image.load(spritesheet).convert_alpha()
+    sheetSize = sheet.get_size()
+
+    sprites = []
+
+    columns = sheetSize[0] / spriteWidth
+    rows = sheetSize[1] / spriteHeight
+
+    for column in range(int(columns)):
+        for row in range(int(rows)):
+            x = row * spriteWidth
+            y = column * spriteHeight
+
+            sprite = sheet.subsurface(pygame.Rect(x, y, * (spriteWidth, spriteHeight)))
+
+            sprites.append(sprite)
+
+    return sprites
+
 playerStartPos = (3/2 * 64, 3/2 * 64)
 
 font = pygame.font.SysFont('Arial', 20)
@@ -75,12 +95,18 @@ tiles = []
 tilesetSize = tileset.get_size()
 tiles.insert(0, pygame.Surface((tileWidth,tileHeight)).convert_alpha())
 
+spritesCortados = cutSpritesheet(tilesetSprite, 64, 64)
 
+tiles.extend(spritesCortados)
+
+''''
 for tileColumn in range(int(tilesetSize[0] / tileWidth)):
     for tileRow in range(int(tilesetSize[1] / tileHeight)):
         tile = pygame.Surface((tileWidth,tileHeight)).convert_alpha()
         tile.blit(tileset, (0,0), (tileRow * 64, tileColumn * 64, tileWidth, tileHeight))
         tiles.append(tile)
+
+'''
 
 #endregion
 
