@@ -35,7 +35,6 @@ map = [
     [51,2,2,2,2,2,2,2,2,53]
 ]
 
-#não é uma matriz, é um vetor de 3 vetores. por isso o tamanho da linha 0, pra idicar a largura, e o tamanho do array principal pra definir a altura.
 #HUD
 scoreText = 0
 scoreTextColor = (255, 255, 255)
@@ -79,6 +78,16 @@ def cutSpritesheet(spritesheet, spriteWidth, spriteHeight):
 
     return sprites
 
+def animate(sprites, frameDuration):
+    frame = 0
+    value = 0
+    sprite = sprites[frame]
+
+    if value >= frameDuration:
+        frame += 1
+
+    return sprite
+
 playerStartPos = (3/2 * 64, 3/2 * 64)
 
 font = pygame.font.SysFont('Arial', 20)
@@ -91,23 +100,10 @@ tilemap = pygame.Surface((640, 640))
 
 #region cut tiles
 tiles = []
-
 tilesetSize = tileset.get_size()
 tiles.insert(0, pygame.Surface((tileWidth,tileHeight)).convert_alpha())
-
 spritesCortados = cutSpritesheet(tilesetSprite, 64, 64)
-
 tiles.extend(spritesCortados)
-
-''''
-for tileColumn in range(int(tilesetSize[0] / tileWidth)):
-    for tileRow in range(int(tilesetSize[1] / tileHeight)):
-        tile = pygame.Surface((tileWidth,tileHeight)).convert_alpha()
-        tile.blit(tileset, (0,0), (tileRow * 64, tileColumn * 64, tileWidth, tileHeight))
-        tiles.append(tile)
-
-'''
-
 #endregion
 
 while True: #Game Loop
