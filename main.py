@@ -64,11 +64,11 @@ def cutSpritesheet(spritesheet, spriteWidth, spriteHeight):
 
     sprites = []
 
-    columns = sheetSize[0] / spriteWidth
-    rows = sheetSize[1] / spriteHeight
+    columns = sheetSize[0] // spriteWidth
+    rows = sheetSize[1] // spriteHeight
 
-    for column in range(int(columns)):
-        for row in range(int(rows)):
+    for column in range(columns):
+        for row in range(rows):
             x = row * spriteWidth
             y = column * spriteHeight
 
@@ -129,7 +129,7 @@ def inputList():
 playerStartPos = (3/2 * 64, 3/2 * 64)
 
 font = pygame.font.SysFont('Arial', 20)
-player = Player(playerStartPos[0], playerStartPos[1], 2)
+player = Player(playerStartPos[0], playerStartPos[1], 1)
 
 angle = 0
 
@@ -152,9 +152,9 @@ selectedTile = pygame.Surface((tileWidth, tileHeight))
 selectedTile.fill((255, 255, 255))
 selectedTile.set_alpha(100)
 
-def calcMousePos(map):
-    mapXSize = len(map[0])
-    mapYSize = len(map)
+def calcMousePos(mapArray):
+    mapXSize = len(mapArray[0])
+    mapYSize = len(mapArray)
 
     mousePosition = pygame.mouse.get_pos()
     mouseTilePos = (0,0)
@@ -170,13 +170,41 @@ def calcMousePos(map):
             mouseTilePos = (mouseTilePos[0], y)
             break
 
-    if map[mouseTilePos[1]] [mouseTilePos[0]] == 42:
-        selectedTile.fill((255, 255, 255))
+    return (mouseTilePos[0] * 64, mouseTilePos[1] * 64)
+#endregion
+
+#region validateTile
+def validateTile(tilePos, mapArray):
+
+    tilePos = (tilePos[0] // 64, tilePos[1] // 64)
+
+    if mapArray[tilePos[1]] [tilePos[0]] == 42:
+        if tilePos[0] * 64 + 32 == playerPos[0] or tilePos[1] * 64 + 32 == playerPos[1]:
+            selectedTile.fill((0, 255, 0))
+
+        else:
+            selectedTile.fill((255, 255, 255))
 
     else:
         selectedTile.fill((255, 0, 0))
 
-    return (mouseTilePos[0] * 64, mouseTilePos[1] * 64)
+#endregion
+
+#region keyboardMove
+def keyboardMove():
+    if(inputList()[pygame.K_w]):
+        playerVelocity[1] = -player.playerSpeed
+    elif(inputList()[pygame.K_s]):
+        playerVelocity[1] = player.playerSpeed
+    else:
+        playerVelocity[1] = 0
+
+    if(inputList()[pygame.K_a]):
+        playerVelocity[0] = -player.playerSpeed
+    elif(inputList()[pygame.K_d]):
+        playerVelocity[0] = player.playerSpeed
+    else:
+        playerVelocity[0] = 0
 #endregion
 
 while True: #Game Loop
@@ -187,6 +215,9 @@ while True: #Game Loop
     clock.tick(60)
     playerPos = player.rect.center
     mousePos = pygame.mouse.get_pos()
+    selectedTilePos = calcMousePos(map)
+    print(playerVelocity)
+    validateTile(selectedTilePos, map)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT: #Fecha o jogo
@@ -195,22 +226,32 @@ while True: #Game Loop
         
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1: #Cria objeto no lugar do clique
             if not attractiveObjects:
-                attractiveOBJ = AttactiveOBJ(mousePos[0], mousePos[1])
+                attractiveOBJ = AttactiveOBJ(selectedTilePos[0] + 32, selectedTilePos[1] + 32)
                 attractiveObjects.add(attractiveOBJ)
                 scoreText += 1
 
     if attractiveObjects: #move o player em direção ao objeto
-        dx = attractiveOBJ.rect.centerx - player.rect.centerx
-        dy = attractiveOBJ.rect.centery - player.rect.centery
-        distance = math.sqrt(dx ** 2 + dy ** 2)
-        if distance > 5:
-            player.rect.centerx += player.playerSpeed * dx / distance
-            player.rect.centery += player.playerSpeed * dy / distance
 
-        else: #destroi o objeto quando o player chega nele
-            attractiveOBJ.kill()
+        if player.rect.centerx < attractiveOBJ.rect.centerx:
+            playerVelocity[0] = player.playerSpeed
+            playerVelocity[1] = 0
+        elif player.rect.centerx > attractiveOBJ.rect.centerx:
+            playerVelocity[0] = -player.playerSpeed
+            playerVelocity[1] = 0
+        elif player.rect.centery < attractiveOBJ.rect.centery:
+            playerVelocity[0] = 0
+            playerVelocity[1] = player.playerSpeed
+        elif player.rect.centery > attractiveOBJ.rect.centery:
+            playerVelocity[0] = 0
+            playerVelocity[1] = -player.playerSpeed
+        else:
+            playerVelocity[0] = 0
+            playerVelocity[1] = 0
 
-    #desenha o mapa
+        if playerPos == attractiveOBJ.rect.center:
+            attractiveObjects.remove(attractiveOBJ)
+
+    #desenha o mapArray
     
     tileRects = []
     y = 0
@@ -227,22 +268,9 @@ while True: #Game Loop
     #tilemap = pygame.transform.scale(tilemap, (640,640))
     screen.blit(tilemap, (0,0))
 
-    if(inputList()[pygame.K_w]):
-        playerVelocity[1] = -player.playerSpeed
-    elif(inputList()[pygame.K_s]):
-        playerVelocity[1] = player.playerSpeed
-    else:
-        playerVelocity[1] = 0
-
-    if(inputList()[pygame.K_a]):
-        playerVelocity[0] = -player.playerSpeed
-    elif(inputList()[pygame.K_d]):
-        playerVelocity[0] = player.playerSpeed
-    else:
-        playerVelocity[0] = 0
+    #keyboardMove()
 
     playerRect, collisions = move(player.rect, playerVelocity, tileRects)
-
 
 
     #region Score
@@ -254,7 +282,6 @@ while True: #Game Loop
     if attractiveObjects:
         pygame.draw.line(screen, (255, 0, 0), playerPos, attractiveOBJ.rect.center)
 
-    screen.blit(scoreTextSurface, scoreTextRect)
     attractiveObjects.draw(screen)
     screen.blit(selectedTile, calcMousePos(map))
     playerRotatedImg = pygame.transform.rotate(player.image, angle)
