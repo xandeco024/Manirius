@@ -98,27 +98,28 @@ def collisionTest(rect , tiles):
 def move(rect, movement, tiles):
     collisionTypes = {'top': False, 'bottom': False, 'left': False, 'right': False}
 
-    rect.x += movement[0]
+    rect.x += movement[0] #MOVIMENTO HORIZONTAL
 
     hitList = collisionTest(rect, tiles)
     for tile in hitList:
         if movement[0] > 0:
-            rect.right = tile.left
+            rect.right = tile.left #caso haja colisão na direita, seta o jogador na posição da parte da esquerda do tile que colidiu.
             collisionTypes['right'] = True
 
         elif movement[0] < 0:
-            rect.left = tile.right
+            rect.left = tile.right #caso haja colisão na esquerda, seta o jogador na posição da parte da direita do tile que colidiu.
             collisionTypes['left'] = True
 
-    rect.y += movement[1]
+    rect.y += movement[1] #MOVIMENTO VERTICA
+
     hitList = collisionTest(rect, tiles)
     for tile in hitList:
-        if movement[1] > 0:
-            rect.bottom = tile.top
+        if movement[1] > 0: 
+            rect.bottom = tile.top #caso haja colisão na parte debaixo, seta o jogador na posição da parte de cima do tile que colidiu.
             collisionTypes['bottom'] = True
 
         if movement[1] < 0:
-            rect.top = tile.bottom
+            rect.top = tile.bottom #caso haja colisão na parte de cima, seta o jogador na posição da parte debaixo do tile que colidiu.
             collisionTypes['top'] = True
     return rect, collisionTypes
 
@@ -152,7 +153,7 @@ selectedTile = pygame.Surface((tileWidth, tileHeight))
 selectedTile.fill((255, 255, 255))
 selectedTile.set_alpha(100)
 
-def calcMousePos(mapArray):
+def calcMouseTilePos(mapArray):
     mapXSize = len(mapArray[0])
     mapYSize = len(mapArray)
 
@@ -174,12 +175,12 @@ def calcMousePos(mapArray):
 #endregion
 
 #region validateTile
-def validateTile(tilePos, mapArray):
+def validateTile(testPos, tilePos, mapArray):
 
     tilePos = (tilePos[0] // 64, tilePos[1] // 64)
 
     if mapArray[tilePos[1]] [tilePos[0]] == 42:
-        if tilePos[0] * 64 + 32 == playerPos[0] or tilePos[1] * 64 + 32 == playerPos[1]:
+        if tilePos[0] * 64 + 32 == testPos[0] or tilePos[1] * 64 + 32 == testPos[1]:
             selectedTile.fill((0, 255, 0))
 
         else:
@@ -188,6 +189,27 @@ def validateTile(tilePos, mapArray):
     else:
         selectedTile.fill((255, 0, 0))
 
+
+def possibleTiles(objectRect, mapArray):
+
+    objectTilePos = (objectRect[0] // 64, objectRect[1] // 64) #obtem a posição em tile que o objeto está
+
+    mapSizeX = len(mapArray[0]) #obtem a quantidade de colunas do mapa
+    mapSizeY = len(mapArray) #obtem a quantidade de linhas do mapa
+
+    for row in range(mapSizeY):
+        for column in range(mapSizeX):
+
+            if column == objectTilePos[0] or row == objectTilePos[1]:
+
+                if mapArray[row][column] == 42:
+                    surface = pygame.Surface((64, 64))
+                    surface.fill((255, 255, 255))
+                    surface.set_alpha(200)
+                    screen.blit(surface, (column * 64, row * 64))
+
+                aux = objectTilePos[0]
+    
 #endregion
 
 #region keyboardMove
@@ -207,6 +229,8 @@ def keyboardMove():
         playerVelocity[0] = 0
 #endregion
 
+pauseGame = False
+
 while True: #Game Loop
     
     screen.fill((100, 100, 100))
@@ -215,9 +239,10 @@ while True: #Game Loop
     clock.tick(60)
     playerPos = player.rect.center
     mousePos = pygame.mouse.get_pos()
-    selectedTilePos = calcMousePos(map)
-    print(playerVelocity)
-    validateTile(selectedTilePos, map)
+    selectedTilePos = calcMouseTilePos(map)
+    validateTile(player.rect.center, selectedTilePos, map)
+
+    
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT: #Fecha o jogo
@@ -270,8 +295,11 @@ while True: #Game Loop
 
     #keyboardMove()
 
-    playerRect, collisions = move(player.rect, playerVelocity, tileRects)
+    if(inputList()[pygame.K_SPACE]):
+        pauseGame = not pauseGame
 
+    if pauseGame == False:
+        playerRect, collisions = move(player.rect, playerVelocity, tileRects)
 
     #region Score
     scoreTextSurface = font.render(str(scoreText), True, scoreTextColor)
@@ -283,8 +311,11 @@ while True: #Game Loop
         pygame.draw.line(screen, (255, 0, 0), playerPos, attractiveOBJ.rect.center)
 
     attractiveObjects.draw(screen)
-    screen.blit(selectedTile, calcMousePos(map))
+    screen.blit(selectedTile, calcMouseTilePos(map))
     playerRotatedImg = pygame.transform.rotate(player.image, angle)
     screen.blit(playerRotatedImg, (playerRect.x, playerRect.y))
+
+    possibleTiles((player.rect.x, player.rect.y), map)
+    print(player.rect.x, player.rect.y)
 
     pygame.display.update() #Atualiza a tela
