@@ -5,8 +5,8 @@ import math
 #region Inicio do codigo
 
 pygame.init()
-screen = pygame.display.set_mode((640, 640),0,32)
-pygame.display.set_caption("SMAUG-2")
+screen = pygame.display.set_mode((640, 640))
+pygame.display.set_caption("Mánirius")
 clock = pygame.time.Clock()
 
 #endregion
@@ -22,7 +22,7 @@ tileHeight = 64
 tilesetSprite = "Sprites/tileset.png"
 tileset = pygame.image.load(tilesetSprite).convert_alpha()
 
-map = [
+map3 = [
     [31,22,63,22,22,22,22,22,22,33],
     [13,42,71,42,42,42,42,42,42,11],
     [13,42,71,42,71,42,42,42,42,11],
@@ -33,6 +33,19 @@ map = [
     [13,42,42,42,42,42,91,92,92,72],
     [13,42,42,42,42,42,42,42,42,43],
     [51, 2, 2, 2, 2, 2, 2, 2, 2,53]
+]
+
+map = [
+    [31,22,22,22,22,22,22,22,33,12],
+    [13,42,42,42,42,42,42,42,11,12],
+    [13,42,42,42,42,42,42,42,11,12],
+    [13,42,42,42,42,42,42,42,11,12],
+    [13,42,42,42,61,42,42,42,11,12],
+    [13,42,42,42,71,42,42,42,11,12],
+    [13,42,42,42,71,42,42,42,11,12],
+    [13,42,42,42,71,42,42,42,21,33],
+    [13,42,42,42,71,42,42,42,42,43],
+    [51, 2, 2, 2,62, 2, 2, 2, 2,53]
 ]
 
 #HUD
@@ -55,19 +68,10 @@ class PointObj(Object):
         
         super().__init__(tile, pos, cost)
 
-        self.image = pygame.image.load('Sprites/object.png').convert_alpha()
+        self.image = pygame.image.load('Sprites/point.png').convert_alpha()
         self.rect = self.image.get_rect()
         self.rect.x = position[0]
         self.rect.y = position[1]
-
-class sexoanal(pygame.sprite.Sprite): #Classe do objeto atraente
-    def __init__(self, x, y):
-        super().__init__()
-        self.image = pygame.image.load('Sprites/object.png').convert_alpha()
-
-        self.rect = self.image.get_rect()
-        self.rect.centerx = x
-        self.rect.centery = y
 
 class Player(pygame.sprite.Sprite): #Classe do player
     def __init__(self, x, y, playerSpeed):
@@ -75,8 +79,8 @@ class Player(pygame.sprite.Sprite): #Classe do player
         self.image = pygame.image.load(playerSprite).convert_alpha()
 
         self.rect = self.image.get_rect()
-        self.rect.centerx = x
-        self.rect.centery = y
+        self.rect.x = x
+        self.rect.y = y
         self.playerSpeed = playerSpeed
 
 
@@ -139,10 +143,10 @@ def inputList():
     inputList = pygame.key.get_pressed()
     return inputList
 
-playerStartPos = (3/2 * 64, 3/2 * 64)
+playerStartPos = (64,128)
 
 font = pygame.font.SysFont('Arial', 20)
-player = Player(playerStartPos[0], playerStartPos[1], 1)
+player = Player(playerStartPos[0], playerStartPos[1], 2)
 
 angle = 0
 
@@ -162,8 +166,6 @@ playerVelocity = [0,0]
 #region selectTile
 
 selectedTile = pygame.Surface((tileWidth, tileHeight))
-selectedTile.fill((255, 255, 255))
-selectedTile.set_alpha(100)
 
 def calcMouseTilePos(mapArray):
     mapXSize = len(mapArray[0])
@@ -208,6 +210,8 @@ def validateTile(testPos, tilePos, tiles, movement):
 
 
     return valid
+
+valid = True
 
 def possibleTiles(objectRect):
     objectTilePos = (objectRect[0] // 64, objectRect[1] // 64)
@@ -268,40 +272,12 @@ def keyboardMove():
 
 pauseGame = True
 
-hotBar = [0,1,2,3,4,5,6,7,8,9]
-selectedItem = hotBar[0]
+def placeObject(object):
+    return object
 
-def selectItem():
-    if(inputList()[pygame.K_0]):
-        selectedItem = 0
-    elif(inputList()[pygame.K_1]):
-        selectedItem = 1
-    elif(inputList()[pygame.K_2]):
-        selectedItem = 2
-    elif(inputList()[pygame.K_3]):
-        selectedItem = 3
-    elif(inputList()[pygame.K_4]):
-        selectedItem = 4
-    elif(inputList()[pygame.K_5]):
-        selectedItem = 5
-    elif(inputList()[pygame.K_6]):
-        selectedItem = 6
-    elif(inputList()[pygame.K_7]):
-        selectedItem = 7
-    elif(inputList()[pygame.K_8]):
-        selectedItem = 8
-    elif(inputList()[pygame.K_9]):
-        selectedItem = 9 
 
-    else: 
-        selectedItem = selectedItem
-
-    return selectedItem
-
-def placeItem(item, pos):
-    instance = item(pos)
-    return instance
-
+space_released = False
+itemSelected = False
 
 while True: #Game Loop
     
@@ -313,28 +289,37 @@ while True: #Game Loop
     mousePos = pygame.mouse.get_pos()
     selectedTilePos = calcMouseTilePos(map)
 
-    selectedItem = 0
-
-    valid = validateTile((player.rect.x, player.rect.y), (selectedTilePos[0],selectedTilePos[1]), 42, "Tower")
-
-
+    valid = True #validateTile((player.rect.x, player.rect.y), (selectedTilePos[0],selectedTilePos[1]), 42, "Tower")
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT: #Fecha o jogo
             pygame.quit()
             sys.exit()
         
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_0:
+                itemSelected = True
+
+            else:
+                itemSelected = False
+            
+            if event.key == pygame.K_SPACE and space_released:
+                pauseGame = not pauseGame
+                space_released = False
+
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_SPACE:
+                space_released = True
+
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1: #Cria objeto no lugar do clique
             
-            if selectedItem == 0:
-                scoreText += 1
+            if itemSelected:
 
                 if valid:
-                    point = PointObj((selectedTilePos[0],selectedTilePos[1]))
+                    point = placeObject(PointObj((selectedTilePos[0], selectedTilePos[1])))
+                    
                     pointList.append(point)
 
-    if len(pointList) > 0:
-        valid = validateTile((pointList[len(pointList)].rect.x, pointList[len(pointList)].rect.y), (selectedTilePos[0],selectedTilePos[1]),              42, "Player")
 
 
     if len(pointList) > 0: #move o player em direção ao objeto
@@ -357,10 +342,12 @@ while True: #Game Loop
             playerVelocity[0] = 0
             playerVelocity[1] = 0
 
-        if playerPos == point.rect:
+        if playerPos == currentPoint.rect:
             pointList.pop(0)
 
-    #desenha o mapArray
+    print(itemSelected)
+
+    #desenha o mapa
     
     tileRects = []
     y = 0
@@ -374,34 +361,43 @@ while True: #Game Loop
             x += 1
         y += 1
 
-    #tilemap = pygame.transform.scale(tilemap, (640,640))
     screen.blit(tilemap, (0,0))
 
     #keyboardMove()
 
-    if(inputList()[pygame.K_SPACE]):
-        pauseGame = not pauseGame
+    if not pauseGame and len(pointList) <= 0:
+        pauseGame = True
 
-    if pauseGame == False:
+    if not pauseGame:
         playerRect, collisions = move(player.rect, playerVelocity, tileRects)
 
     else:
         playerRect = player.rect
+
     #region Score
     scoreTextSurface = font.render(str(scoreText), True, scoreTextColor)
     scoreTextRect = scoreTextSurface.get_rect()
     scoreTextRect.center = (100, 200)
     #endregion
 
+    #region Draw
+
     if pointList:
-        pygame.draw.line(screen, (255, 0, 0), playerPos.center, (point.rect.centerx, point.rect.centery), 5)
+        pygame.draw.line(screen, (255, 255, 255), playerPos.center, (currentPoint.rect.centerx, currentPoint.rect.centery), 4)
+
+        for a in range(len(pointList) - 1):
+            pygame.draw.line(screen, (255, 255, 255), pointList[a].rect.center, pointList[a + 1].rect.center, 4)
 
     for point in pointList:
         screen.blit(point.image, (point.rect.x, point.rect.y))
-    screen.blit(selectedTile, calcMouseTilePos(map))
+
+    if itemSelected:
+        screen.blit(selectedTile, calcMouseTilePos(map))
+
     playerRotatedImg = pygame.transform.rotate(player.image, angle)
     screen.blit(playerRotatedImg, (playerRect.x, playerRect.y))
-    possibleTiles(player.rect)
+    #possibleTiles(player.rect)
 
 
     pygame.display.update() #Atualiza a tela
+    #endregion
