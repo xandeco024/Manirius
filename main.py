@@ -22,7 +22,7 @@ tileHeight = 64
 tilesetSprite = "Sprites/tileset.png"
 tileset = pygame.image.load(tilesetSprite).convert_alpha()
 
-map3 = [
+map2 = [
     [31,22,63,22,22,22,22,22,22,33],
     [13,42,71,42,42,42,42,42,42,11],
     [13,42,71,42,71,42,42,42,42,11],
@@ -145,7 +145,6 @@ def inputList():
 
 playerStartPos = (64,128)
 
-font = pygame.font.SysFont('Arial', 20)
 player = Player(playerStartPos[0], playerStartPos[1], 2)
 
 angle = 0
@@ -165,31 +164,23 @@ playerVelocity = [0,0]
 
 #region selectTile
 
-selectedTile = pygame.Surface((tileWidth, tileHeight))
-
 def calcMouseTilePos(mapArray):
     mapXSize = len(mapArray[0])
     mapYSize = len(mapArray)
 
     mousePosition = pygame.mouse.get_pos()
-    mouseTilePos = (0,0)
 
+    tileX = mousePosition[0] // 64
+    tileY = mousePosition[1] // 64
 
-    for x in range(mapXSize):
-        if mousePosition[0] >= x * 64 and mousePosition[0] <= (x + 1) * 64:
-            mouseTilePos = (x, mouseTilePos[1])
-            break
-        
-    for y in range(mapYSize):
-        if mousePosition[1] >= y * 64 and mousePosition[1] <= (y + 1) * 64:
-            mouseTilePos = (mouseTilePos[0], y)
-            break
+    if tileX >= mapXSize or tileY >= mapYSize:
+        return (0,0)
 
-    return (mouseTilePos[0] * 64, mouseTilePos[1] * 64)
+    return (tileX, tileY)
 #endregion
 
 #region validateTile
-def validateTile(testPos, tilePos, tiles, movement):
+def validateTile1(testPos, tilePos, tiles, movement):
 
     valid = False
 
@@ -211,46 +202,62 @@ def validateTile(testPos, tilePos, tiles, movement):
 
     return valid
 
-valid = True
+def validateTile(mouseTilepos, tiles):
+    return mouseTilepos in tiles
 
-def possibleTiles(objectRect):
+def drawValidTile(valid, drawPos):
+
+    selectedTileSurface = pygame.Surface((64, 64))
+
+    if not valid:
+        selectedTileSurface.fill((255, 0, 0))
+    else:
+        selectedTileSurface.fill((0, 255, 0))
+
+    screen.blit(selectedTileSurface, drawPos) 
+
+def testPossibleTiles(objectRect):
     objectTilePos = (objectRect[0] // 64, objectRect[1] // 64)
     mapSizeX, mapSizeY = len(map[0]), len(map)
 
-    def draw_tile(row, column, alpha):
-        if map[row][column] != 42:
+    possibleTiles = []
+
+    def testTile(row, column):
+        if map[column][row] != 42:
             return False
-        surface = pygame.Surface((64, 64))
-        surface.fill((255, 255, 255))
-        surface.set_alpha(alpha)
-        screen.blit(surface, (column * 64, row * 64))
         return True
 
-    # Verifica os tiles na mesma linha que o objeto
-    alpha = 150
     for column in range(objectTilePos[0], mapSizeX):  # Da posição do objeto até o final do mapa
-        if not draw_tile(objectTilePos[1], column, alpha):
+        if not testTile(column, objectTilePos[1]):
             break
-        alpha = max(0, alpha - 10)  # Reduz o valor alfa para o próximo tile
+        possibleTiles.append(( column * 64, objectTilePos[1] * 64))
 
-    alpha = 150  # Reinicia o valor alfa para a próxima direção
     for column in range(objectTilePos[0], -1, -1):  # Da posição do objeto até o início do mapa
-        if not draw_tile(objectTilePos[1], column, alpha):
+        if not testTile(column, objectTilePos[1]):
             break
-        alpha = max(0, alpha - 10)  
-
-    alpha = 150  
+        possibleTiles.append(( column * 64, objectTilePos[1] * 64))
+ 
     for row in range(objectTilePos[1], mapSizeY):  
-        if not draw_tile(row, objectTilePos[0], alpha):
+        if not testTile(objectTilePos[0], row):
             break
-        alpha = max(0, alpha - 10)  
+        possibleTiles.append((objectTilePos[0] * 64, row * 64, ))
 
-    alpha = 150  
     for row in range(objectTilePos[1], -1, -1):  
-        if not draw_tile(row, objectTilePos[0], alpha):
+        if not testTile(objectTilePos[0], row):
             break
-        alpha = max(0, alpha - 10)  
+        possibleTiles.append((objectTilePos[0] * 64, row * 64, ))
+
+    return possibleTiles
     
+def drawPossibleTiles(tiles):
+        
+        for tile in tiles:
+            row, column = tile
+            surface = pygame.Surface((64, 64))
+            surface.fill((255, 255, 255))
+            surface.set_alpha(150)
+            screen.blit(surface, (row, column))
+
 #endregion
 
 #region keyboardMove
@@ -287,9 +294,18 @@ while True: #Game Loop
     clock.tick(60)
     playerPos = player.rect
     mousePos = pygame.mouse.get_pos()
-    selectedTilePos = calcMouseTilePos(map)
+    selectedTile = calcMouseTilePos(map)
+    selectedTileTranslated = (selectedTile[0] * 64, selectedTile[1] * 64)
 
-    valid = True #validateTile((player.rect.x, player.rect.y), (selectedTilePos[0],selectedTilePos[1]), 42, "Tower")
+    #print(validateTile((selectedTile[0] * 64 ,selectedTile[1] * 64),testPossibleTiles(player.rect)))
+    #print(testPossibleTiles(player.rect))
+
+    
+
+    if len(pointList) > 0:
+        valid = validateTile(selectedTileTranslated, testPossibleTiles(pointList[len(pointList)].rect))
+    else:
+        valid = validateTile(selectedTileTranslated, testPossibleTiles(playerPos))
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT: #Fecha o jogo
@@ -316,11 +332,9 @@ while True: #Game Loop
             if itemSelected:
 
                 if valid:
-                    point = placeObject(PointObj((selectedTilePos[0], selectedTilePos[1])))
+                    point = placeObject(PointObj(selectedTileTranslated))
                     
                     pointList.append(point)
-
-
 
     if len(pointList) > 0: #move o player em direção ao objeto
 
@@ -344,8 +358,6 @@ while True: #Game Loop
 
         if playerPos == currentPoint.rect:
             pointList.pop(0)
-
-    print(itemSelected)
 
     #desenha o mapa
     
@@ -374,12 +386,6 @@ while True: #Game Loop
     else:
         playerRect = player.rect
 
-    #region Score
-    scoreTextSurface = font.render(str(scoreText), True, scoreTextColor)
-    scoreTextRect = scoreTextSurface.get_rect()
-    scoreTextRect.center = (100, 200)
-    #endregion
-
     #region Draw
 
     if pointList:
@@ -392,8 +398,9 @@ while True: #Game Loop
         screen.blit(point.image, (point.rect.x, point.rect.y))
 
     if itemSelected:
-        screen.blit(selectedTile, calcMouseTilePos(map))
+        drawValidTile(validateTile(selectedTileTranslated, testPossibleTiles(playerPos)), selectedTileTranslated)
 
+    drawPossibleTiles(testPossibleTiles(player.rect)) 
     playerRotatedImg = pygame.transform.rotate(player.image, angle)
     screen.blit(playerRotatedImg, (playerRect.x, playerRect.y))
     #possibleTiles(player.rect)
