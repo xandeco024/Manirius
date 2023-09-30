@@ -15,10 +15,6 @@ clock = pygame.time.Clock()
 playerSprite = "Sprites/player.png"
 
 #Tileset
-tileWidth = 64
-tileHeight = 64
-tilesetSprite = "Sprites/tileset.png"
-tileset = pygame.image.load(tilesetSprite).convert_alpha()
 
 map2 = [
     [31,22,63,22,22,22,22,22,22,33],
@@ -105,7 +101,7 @@ def collisionTest(rect , tiles):
     return hitList
 
 def move(rect, movement, tiles):
-    collisionTypes = {'top': False, 'bottom': False, 'left': False, 'right': False}
+    #collisionTypes = {'top': False, 'bottom': False, 'left': False, 'right': False}
 
     rect.x += movement[0] #MOVIMENTO HORIZONTAL
 
@@ -113,11 +109,11 @@ def move(rect, movement, tiles):
     for tile in hitList:
         if movement[0] > 0:
             rect.right = tile.left #caso haja colisão na direita, seta o jogador na posição da parte da esquerda do tile que colidiu.
-            collisionTypes['right'] = True
+            #collisionTypes['right'] = True
 
         elif movement[0] < 0:
             rect.left = tile.right #caso haja colisão na esquerda, seta o jogador na posição da parte da direita do tile que colidiu.
-            collisionTypes['left'] = True
+            #collisionTypes['left'] = True
 
     rect.y += movement[1] #MOVIMENTO VERTICA
 
@@ -125,20 +121,12 @@ def move(rect, movement, tiles):
     for tile in hitList:
         if movement[1] > 0: 
             rect.bottom = tile.top #caso haja colisão na parte debaixo, seta o jogador na posição da parte de cima do tile que colidiu.
-            collisionTypes['bottom'] = True
+            #collisionTypes['bottom'] = True
 
         if movement[1] < 0:
             rect.top = tile.bottom #caso haja colisão na parte de cima, seta o jogador na posição da parte debaixo do tile que colidiu.
-            collisionTypes['top'] = True
-    return rect, collisionTypes
-
-#region cut tiles
-tiles = []
-tilesetSize = tileset.get_size()
-tiles.insert(0, pygame.Surface((tileWidth,tileHeight)).convert_alpha())
-spritesCortados = cutSpritesheet(tilesetSprite, 64, 64)
-tiles.extend(spritesCortados)
-#endregion
+            #collisionTypes['top'] = True
+    return rect#, collisionTypes
 
 def calcMouseTilePos(mapArray):
     mapXSize = len(mapArray[0])
@@ -232,6 +220,63 @@ def drawPossibleTiles(tiles):
             surface.set_alpha(150)
             screen.blit(surface, (row, column))
 
+def drawPoints(pointList, playerRect):
+    if pointList:
+        pygame.draw.line(screen, (255, 255, 255), playerRect.rect.center, (currentPoint.rect.centerx, currentPoint.rect.centery), 4)
+
+        for a in range(len(pointList) - 1):
+            pygame.draw.line(screen, (255, 255, 255), pointList[a].rect.center, pointList[a + 1].rect.center, 4)
+
+    for point in pointList:
+        screen.blit(point.image, (point.rect.x, point.rect.y))
+
+class PointHandler():
+    def __init__():
+
+        super().__init__()
+
+class Level():
+    def __init__(self, map, tilesetSprite, screen):
+
+        super().__init__()
+        self.map = map
+        self.tilesetSprite = tilesetSprite
+        self.sreen = screen
+
+    def DrawLevel():
+        tileRects = []
+
+
+        tiles = []
+
+        tilemap = pygame.Surface((640, 640))
+
+        tileWidth = 64
+        tileHeight = 64
+        tilesetSprite = "Sprites/tileset.png"
+        tileset = pygame.image.load(tilesetSprite).convert_alpha()
+
+        tiles.insert(0, pygame.Surface((tileWidth,tileHeight)).convert_alpha())
+        spritesCortados = cutSpritesheet(tilesetSprite, 64, 64)
+        tiles.extend(spritesCortados)
+
+        y = 0
+        for row in map:
+            x = 0
+            for tileIndex in row:
+                tilemap.blit(tiles[tileIndex], (x * tileWidth, y * tileHeight))
+                if tileIndex != 0 and tileIndex != 42:
+                    
+                    tileRects.append(pygame.Rect(x * tileWidth, y * tileHeight, tileWidth, tileHeight))
+                x += 1
+            y += 1
+
+        screen.blit(tilemap, (0,0))
+
+    def Update():
+        
+
+
 #region Start Var
 playerVelocity = [0,0]
 pauseGame = True
@@ -240,14 +285,21 @@ itemSelected = False
 playerStartPos = (64,128)
 player = Player(playerStartPos[0], playerStartPos[1], 2)
 angle = 0
-tilemap = pygame.Surface((640, 640))
 scoreText = 0
 scoreTextColor = (255, 255, 255)
 pointList = []
 #endregion
 
+level = Level(map, "./Sprites/tileset.png", screen)
+
+#region Start
+
+
+
+#endregion
+
 while True: #Game Loop
-    
+
     screen.fill((100, 100, 100))
 
     #Atualizações 
@@ -306,42 +358,22 @@ while True: #Game Loop
             pointList.pop(0)
 
     #desenha o mapa
-    
+
     tileRects = []
-    y = 0
-    for row in map:
-        x = 0
-        for tileIndex in row:
-            tilemap.blit(tiles[tileIndex], (x * tileWidth, y * tileHeight))
-            if tileIndex != 0 and tileIndex != 42:
-                
-                tileRects.append(pygame.Rect(x * tileWidth, y * tileHeight, tileWidth, tileHeight))
-            x += 1
-        y += 1
-
-    screen.blit(tilemap, (0,0))
-
-    #keyboardMove()
 
     if not pauseGame and len(pointList) <= 0:
         pauseGame = True
 
     if not pauseGame:
-        playerRect, collisions = move(player.rect, playerVelocity, tileRects)
+        playerRect = move(player.rect, playerVelocity, tileRects)
 
     else:
         playerRect = player.rect
 
     #region Draw
+    drawPoints(pointList, playerRect)
 
-    if pointList:
-        pygame.draw.line(screen, (255, 255, 255), playerPos.center, (currentPoint.rect.centerx, currentPoint.rect.centery), 4)
-
-        for a in range(len(pointList) - 1):
-            pygame.draw.line(screen, (255, 255, 255), pointList[a].rect.center, pointList[a + 1].rect.center, 4)
-
-    for point in pointList:
-        screen.blit(point.image, (point.rect.x, point.rect.y))
+    level.DrawLevel()
 
     if itemSelected:
         drawValidTile(validateTile(selectedTileTranslated, testPossibleTiles(playerPos)), selectedTileTranslated)
