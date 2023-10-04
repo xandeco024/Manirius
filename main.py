@@ -1,6 +1,5 @@
 import pygame
 import sys
-import math
 
 #region Inicio do codigo
 
@@ -156,7 +155,7 @@ def calcMouseTilePos(mapArray):
     return (tileX, tileY)
 
 def validateTile1(testPos, tilePos, tiles, movement):
-
+    selectedTile = pygame.Surface((64, 64), pygame.SRCALPHA)
     valid = False
 
     tilePos = (tilePos[0] // 64, tilePos[1] // 64)
@@ -238,6 +237,7 @@ def drawPossibleTiles(tiles):
 
 def drawPoints(pointList, playerRect):
     if pointList:
+        currentPoint = pointList[0]
         pygame.draw.line(screen, (255, 255, 255), playerRect.center, (currentPoint.rect.centerx, currentPoint.rect.centery), 4)
 
         for a in range(len(pointList) - 1):
@@ -283,123 +283,131 @@ class Level():
         
         self.screen.blit(tilemap, (0,0))
 
-#region Start Var
-playerVelocity = [0,0]
-pauseGame = True
-space_released = False
-itemSelected = False
-playerStartPos = (64,128)
-player = Player(playerStartPos[0], playerStartPos[1], 2)
-angle = 0
-scoreText = 0
-scoreTextColor = (255, 255, 255)
-pointList = []
+def DrawText(text, font, color, surface, x, y):
+    textObj = font.render(text, 1, color)
+    textRect = textObj.get_rect()
+    textRect.topleft = (x, y)
+    surface.blit(textObj, textRect)
 
-valid = False
-#endregion
+def MainMenu():
+    while True:
+        screen.fill((0, 0, 0))
 
-level = Level(map, "./Sprites/tileset.png", screen)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
 
-#region Start
+        DrawText('Main Menu', pygame.font.Font('freesansbold.ttf', 100), (255, 255, 255), screen, 20, 20)
+        pygame.display.update()
+        clock.tick(60)
 
+def Game():
+    playerVelocity = [0,0]
+    pauseGame = True
+    space_released = False
+    itemSelected = False
+    playerStartPos = (64,128)
+    player = Player(playerStartPos[0], playerStartPos[1], 2)
+    angle = 0
+    pointList = []
 
+    valid = False
 
-#endregion
+    level = Level(map, "./Sprites/tileset.png", screen)
 
-while True: #Game Loop
+    while True:
+        screen.fill((100, 100, 100))
 
-    screen.fill((100, 100, 100))
+        #Atualizações 
+        clock.tick(60)
+        playerPos = player.rect
+        selectedTile = calcMouseTilePos(map)
+        selectedTileTranslated = (selectedTile[0] * 64, selectedTile[1] * 64)
 
-    #Atualizações 
-    clock.tick(60)
-    playerPos = player.rect
-    mousePos = pygame.mouse.get_pos()
-    selectedTile = calcMouseTilePos(map)
-    selectedTileTranslated = (selectedTile[0] * 64, selectedTile[1] * 64)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: #Fecha o jogo
+                pygame.quit()
+                sys.exit()
+            
+            if event.type == pygame.KEYDOWN: #Apertar tecla
+                if event.key == pygame.K_0:
+                    itemSelected = True
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT: #Fecha o jogo
-            pygame.quit()
-            sys.exit()
-        
-        if event.type == pygame.KEYDOWN: #Apertar tecla
-            if event.key == pygame.K_0:
-                itemSelected = True
+                else:
+                    itemSelected = False
+                
+                if event.key == pygame.K_SPACE and space_released:
+                    pauseGame = not pauseGame
+                    space_released = False
+
+            if event.type == pygame.KEYUP: #Soltar tecla
+                if event.key == pygame.K_SPACE:
+                    space_released = True
+
+            if event.type == pygame.MOUSEBUTTONDOWN: #Botão do mouse
+                
+                if event.button == 1:
+                    if itemSelected and valid:
+                        point = PointObj(selectedTileTranslated)
+                        
+                        pointList.append(point)
+
+        if pointList: #move o player em direção ao objeto
+
+            currentPoint = pointList[0]
+
+            dx = currentPoint.rect.x - player.rect.x
+            dy = currentPoint.rect.y - player.rect.y
+
+            if dx != 0:
+                playerVelocity[0] = player.playerSpeed * (dx // abs(dx))
+                playerVelocity[1] = 0
+                
+            elif dy != 0:
+                playerVelocity[0] = 0
+                playerVelocity[1] = player.playerSpeed * (dy // abs(dy))
 
             else:
-                itemSelected = False
-            
-            if event.key == pygame.K_SPACE and space_released:
-                pauseGame = not pauseGame
-                space_released = False
+                playerVelocity[0] = 0
+                playerVelocity[1] = 0
+                pointList.pop(0)
 
-        if event.type == pygame.KEYUP: #Soltar tecla
-            if event.key == pygame.K_SPACE:
-                space_released = True
+        #desenha o mapa
 
-        if event.type == pygame.MOUSEBUTTONDOWN: #Botão do mouse
-            
-            if event.button == 1:
-                if itemSelected and valid:
-                    point = PointObj(selectedTileTranslated)
-                    
-                    pointList.append(point)
+        tileRects = []
 
-    if pointList: #move o player em direção ao objeto
+        if not pauseGame and pointList:
+            pauseGame = True
 
-        currentPoint = pointList[0]
-
-        dx = currentPoint.rect.x - player.rect.x
-        dy = currentPoint.rect.y - player.rect.y
-
-        if dx != 0:
-            playerVelocity[0] = player.playerSpeed * (dx // abs(dx))
-            playerVelocity[1] = 0
-            
-        elif dy != 0:
-            playerVelocity[0] = 0
-            playerVelocity[1] = player.playerSpeed * (dy // abs(dy))
+        if not pauseGame:
+            playerRect = move(player.rect, playerVelocity, tileRects)
 
         else:
-            playerVelocity[0] = 0
-            playerVelocity[1] = 0
-            pointList.pop(0)
+            playerRect = player.rect
 
-    #desenha o mapa
+        #region Draw
 
-    tileRects = []
+        level.DrawLevel()
 
-    if not pauseGame and len(pointList) <= 0:
-        pauseGame = True
+        if itemSelected:
+            if pointList:
+                valid = validateTile(selectedTileTranslated, testPossibleTiles(pointList[len(pointList) - 1].rect))
+                drawPossibleTiles(testPossibleTiles(pointList[len(pointList) - 1].rect)) 
+                drawValidPoint(validateTile(selectedTileTranslated, testPossibleTiles(pointList[len(pointList) - 1].rect)), selectedTileTranslated)
+            else:
+                valid = validateTile(selectedTileTranslated, testPossibleTiles(playerPos))
+                drawPossibleTiles(testPossibleTiles(player.rect))
+                drawValidPoint(validateTile(selectedTileTranslated, testPossibleTiles(playerPos)), selectedTileTranslated)
 
-    if not pauseGame:
-        playerRect = move(player.rect, playerVelocity, tileRects)
+        drawPoints(pointList, playerRect)
 
-    else:
-        playerRect = player.rect
+        playerRotatedImg = pygame.transform.rotate(player.image, angle)
+        screen.blit(playerRotatedImg, (playerRect.x, playerRect.y))
 
-    #region Draw
+        pygame.display.update() #Atualiza a tela
+        #endregion
 
-    level.DrawLevel()
-
-    if itemSelected:
-        if pointList:
-            valid = validateTile(selectedTileTranslated, testPossibleTiles(pointList[len(pointList) - 1].rect))
-            drawPossibleTiles(testPossibleTiles(pointList[len(pointList) - 1].rect)) 
-            drawValidPoint(validateTile(selectedTileTranslated, testPossibleTiles(pointList[len(pointList) - 1].rect)), selectedTileTranslated)
-        else:
-            valid = validateTile(selectedTileTranslated, testPossibleTiles(playerPos))
-            drawPossibleTiles(testPossibleTiles(player.rect))
-            drawValidPoint(validateTile(selectedTileTranslated, testPossibleTiles(playerPos)), selectedTileTranslated)
-
-
-
-    drawPoints(pointList, playerRect)
-
-
-    playerRotatedImg = pygame.transform.rotate(player.image, angle)
-    screen.blit(playerRotatedImg, (playerRect.x, playerRect.y))
-
-
-    pygame.display.update() #Atualiza a tela
-    #endregion
+#region Heliópolis
+MainMenu()
+#endregion
