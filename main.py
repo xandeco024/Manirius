@@ -283,21 +283,75 @@ class Level():
         
         self.screen.blit(tilemap, (0,0))
 
-def DrawText(text, font, color, surface, x, y):
-    textObj = font.render(text, 1, color)
+def DrawText(text, font, fontSize, color, surface, x, y):
+    fontObj = pygame.font.Font(font, fontSize)
+    textObj = fontObj.render(text, 1, color)
     textRect = textObj.get_rect()
     textRect.center = (x, y)
     surface.blit(textObj, textRect)
 
+buttons = pygame.sprite.Group()
+
+class Button():
+    def __init__(self, text, font, fontSize, textNormalColor, textHoverColor, normalColor, hoverColor, btnSize, pos, command):
+        super().__init__()
+        self.text = text
+        self.textNormalColor = textNormalColor
+        self.textHoverColor = textHoverColor
+        self.font = font
+        self.fontSize = fontSize
+        self.btnSize = btnSize
+        self.pos = pos
+        self.normalColor = normalColor
+        self.hoverColor = hoverColor
+        self.command = command
+        self.normalSurface = self.CreateSurface(self.textNormalColor, self.normalColor)
+        self.hoverSurface = self.CreateSurface(self.textHoverColor, self.hoverColor)
+        self.buttonRect = pygame.Rect(self.pos, self.btnSize)
+    
+    def CreateSurface(self, textColor, btnColor):
+        surface = pygame.Surface(self.btnSize)
+        surface.fill(btnColor)
+        font = pygame.font.Font(self.font, self.fontSize)
+        textObj = font.render(self.text, 1, textColor)
+        textRect = textObj.get_rect(center = (self.btnSize[0] / 2, self.btnSize[1] / 2))
+        surface.blit(textObj, textRect)
+        return surface      
+
+    def Update(self, surface, click):
+        mouseX, mouseY = pygame.mouse.get_pos()
+
+        if self.buttonRect.collidepoint(mouseX, mouseY):
+            surface.blit(self.hoverSurface, self.pos)
+            if click:
+                print("sexo3")
+                self.command()
+
+        else:
+            surface.blit(self.normalSurface, self.pos)
+        
+
+def draw_background():
+    # Obtenha o tamanho da imagem de fundo
+    bg_width, bg_height = background.get_size()
+
+    # Calcule quantas vezes a imagem de fundo precisa ser desenhada em cada direção
+    x_times = screen_width // bg_width + 1
+    y_times = screen_height // bg_height + 1
+
+    # Desenhe a imagem de fundo repetidamente para preencher toda a tela
+    for i in range(x_times):
+        for j in range(y_times):
+            screen.blit(background, (i * bg_width, j * bg_height))
+
 def MainMenu():
+
+    startButton = Button("Start", "freesansbold.ttf", 50, (255, 255, 255), (255, 255, 255), (0, 255, 0), (100, 100, 100), (200, 100), (220, 300), Game)
+    quitButton = Button("Quit", "freesansbold.ttf", 50, (255, 255, 255), (255, 255, 255), (0, 255, 0), (100, 100, 100), (200, 100), (220, 450), sys.exit)
+    screenX, screenY = screen.get_size()
+    click = False
+
     while True:
-        screenX, screenY = screen.get_size()
-        mousePos = pygame.mouse.get_pos()
-
-        color = (255,255,255)
-        color_light = (170,170,170)
-        color_dark = (100,100,100)
-
         screen.fill((0, 0, 0))
 
         click = False
@@ -308,27 +362,13 @@ def MainMenu():
                 sys.exit()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    click = True
+                    if event.button == 1:
+                        click = True
 
-        DrawText('Mánirius', pygame.font.Font('freesansbold.ttf', 50), (255, 255, 255), screen, screenX / 2, 150)
+        DrawText('Mánirius', 'freesansbold.ttf', 100, (255, 255, 255), screen, screenX / 2, 150)
 
-        button1 = pygame.Rect(screenX / 2 - 100, 250, 200, 50)
-        button2 = pygame.Rect(screenX / 2 - 100, 350, 200, 50)
-
-        def DrawButton(rect,screen):
-            button = pygame.Rect(rect)
-            pygame.draw.rect(screen, color, button)
-
-        if button1.collidepoint(mousePos):
-            if click:
-                print("PENIS")
-        if button2.collidepoint(mousePos):
-            if click:
-                print("CU")
-
-        pygame.draw.rect(screen, color, button1)
-        pygame.draw.rect(screen, color, button2)
+        startButton.Update(screen, click)
+        quitButton.Update(screen, click)
 
         pygame.display.update()
         clock.tick(60)
