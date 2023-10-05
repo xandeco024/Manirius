@@ -286,19 +286,50 @@ class Level():
 def DrawText(text, font, color, surface, x, y):
     textObj = font.render(text, 1, color)
     textRect = textObj.get_rect()
-    textRect.topleft = (x, y)
+    textRect.center = (x, y)
     surface.blit(textObj, textRect)
 
 def MainMenu():
     while True:
+        screenX, screenY = screen.get_size()
+        mousePos = pygame.mouse.get_pos()
+
+        color = (255,255,255)
+        color_light = (170,170,170)
+        color_dark = (100,100,100)
+
         screen.fill((0, 0, 0))
+
+        click = False
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
 
-        DrawText('Main Menu', pygame.font.Font('freesansbold.ttf', 100), (255, 255, 255), screen, 20, 20)
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    click = True
+
+        DrawText('Mánirius', pygame.font.Font('freesansbold.ttf', 50), (255, 255, 255), screen, screenX / 2, 150)
+
+        button1 = pygame.Rect(screenX / 2 - 100, 250, 200, 50)
+        button2 = pygame.Rect(screenX / 2 - 100, 350, 200, 50)
+
+        def DrawButton(rect,screen):
+            button = pygame.Rect(rect)
+            pygame.draw.rect(screen, color, button)
+
+        if button1.collidepoint(mousePos):
+            if click:
+                print("PENIS")
+        if button2.collidepoint(mousePos):
+            if click:
+                print("CU")
+
+        pygame.draw.rect(screen, color, button1)
+        pygame.draw.rect(screen, color, button2)
+
         pygame.display.update()
         clock.tick(60)
 
