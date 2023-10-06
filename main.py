@@ -10,10 +10,12 @@ clock = pygame.time.Clock()
 
 #endregion
 
-#Sprites
-playerSprite = "Sprites/player.png"
+#region Global Variables
 
-#Tileset
+verminVibes = "Fonts/Vermin Vibes 1989.ttf"
+kenneyPixel = "Fonts/Kenney Pixel.ttf"
+
+#endregion
 
 map2 = [
     [31,22,63,22,22,22,22,22,22,33],
@@ -76,14 +78,14 @@ class PointObj(Object):
         self.rect.y = position[1]
 
 class Player(pygame.sprite.Sprite): #Classe do player
-    def __init__(self, x, y, playerSpeed):
+    def __init__(self, x, y):
         super().__init__()
-        self.image = pygame.image.load(playerSprite).convert_alpha()
-
+        self.playerSprite = "Sprites/player.png"
+        self.image = pygame.image.load(self.playerSprite).convert_alpha()
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
-        self.playerSpeed = playerSpeed
+        self.playerSpeed = 2
 
 def cutSpritesheet(spritesheet, spriteWidth, spriteHeight):
     sheet = pygame.image.load(spritesheet).convert_alpha()
@@ -153,28 +155,6 @@ def calcMouseTilePos(mapArray):
         return (0,0)
 
     return (tileX, tileY)
-
-def validateTile1(testPos, tilePos, tiles, movement):
-    selectedTile = pygame.Surface((64, 64), pygame.SRCALPHA)
-    valid = False
-
-    tilePos = (tilePos[0] // 64, tilePos[1] // 64)
-
-    if movement == "Tower":
-        if map[tilePos[1]] [tilePos[0]] == tiles:
-            if tilePos[0] * 64 == testPos[0] or tilePos[1] * 64 == testPos[1]:
-                selectedTile.fill((0, 255, 0))
-                valid = True
-
-            else:
-                selectedTile.fill((255, 255, 255))
-
-        else:
-            selectedTile.fill((255, 0, 0))
-            valid = False
-
-
-    return valid
 
 def validateTile(mouseTilepos, tiles):
     return mouseTilepos in tiles
@@ -286,15 +266,16 @@ class Level():
 def DrawText(text, font, fontSize, color, surface, x, y):
     fontObj = pygame.font.Font(font, fontSize)
     textObj = fontObj.render(text, 1, color)
-    textRect = textObj.get_rect()
-    textRect.center = (x, y)
-    surface.blit(textObj, textRect)
 
-buttons = pygame.sprite.Group()
+    lines = text.splitlines()  # divide o texto em linhas
+    for i, line in enumerate(lines):
+        textObj = fontObj.render(line, 1, color)
+        textRect = textObj.get_rect()
+        textRect.center = (x, y + i*fontSize)  # ajusta a posição y para cada linha
+        surface.blit(textObj, textRect)
 
 class Button():
     def __init__(self, text, font, fontSize, textNormalColor, textHoverColor, normalColor, hoverColor, btnSize, pos, command):
-        super().__init__()
         self.text = text
         self.textNormalColor = textNormalColor
         self.textHoverColor = textHoverColor
@@ -330,24 +311,55 @@ class Button():
         else:
             surface.blit(self.normalSurface, self.pos)
         
+class Background():
+    def __init__(self, backgroundSprite, screen, speed):
+        self.backgroundSprite = backgroundSprite
+        self.screen = screen
+        self.speed = speed
+        self.offset = [0, 0]
 
-def draw_background():
-    # Obtenha o tamanho da imagem de fundo
-    bg_width, bg_height = background.get_size()
+    def DrawBackground(self):
+        bgX, bgY = self.backgroundSprite.get_size()
+        screenX, screenY = self.screen.get_size()
 
-    # Calcule quantas vezes a imagem de fundo precisa ser desenhada em cada direção
-    x_times = screen_width // bg_width + 1
-    y_times = screen_height // bg_height + 1
+        xRepeat = screenX // bgX + 2
+        yRepeat = screenY // bgY + 2
 
-    # Desenhe a imagem de fundo repetidamente para preencher toda a tela
-    for i in range(x_times):
-        for j in range(y_times):
-            screen.blit(background, (i * bg_width, j * bg_height))
+
+
+        if self.speed[0] >= 0:
+            self.offset[0] += self.speed[0]
+            if self.offset[0] >= bgX:
+                self.offset[0] = 0
+
+        elif self.speed[0] < 0:
+            self.offset[0] += self.speed[0]
+            if self.offset[0] <= -bgX:
+                self.offset[0] = 0
+
+        if self.speed[1] >= 0:
+            self.offset[1] += self.speed[1]
+            if self.offset[1] >= bgY:
+                self.offset[1] = 0
+        
+        elif self.speed[1] < 0:
+            self.offset[1] += self.speed[1]
+            if self.offset[1] <= -bgY:
+                self.offset[1] = 0
+
+
+        for x in range(xRepeat):
+            for y in range(yRepeat):
+                screen.blit(self.backgroundSprite, ((x * bgX) + self.offset[0], (y * bgY) + self.offset[1]))
 
 def MainMenu():
 
-    startButton = Button("Start", "freesansbold.ttf", 50, (255, 255, 255), (255, 255, 255), (0, 255, 0), (100, 100, 100), (200, 100), (220, 300), Game)
-    quitButton = Button("Quit", "freesansbold.ttf", 50, (255, 255, 255), (255, 255, 255), (0, 255, 0), (100, 100, 100), (200, 100), (220, 450), sys.exit)
+    backgroundSprite = pygame.image.load("Sprites/background.jpg")
+    background = Background(backgroundSprite, screen, [-1, -1])
+
+    startButton = Button("START", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (200, 75), (220, 300), Game)
+    settingsButton = Button("SETTINGS", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (200, 75), (220, 400), sys.exit)
+    quitButton = Button("QUIT", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (200, 75), (220, 500), sys.exit)
     screenX, screenY = screen.get_size()
     click = False
 
@@ -365,36 +377,52 @@ def MainMenu():
                     if event.button == 1:
                         click = True
 
-        DrawText('Mánirius', 'freesansbold.ttf', 100, (255, 255, 255), screen, screenX / 2, 150)
+        #region Draw
+        
+        background.DrawBackground()
+
+        #DrawText('MANIRIUS', verminVibes, 102, (255, 255, 0), screen, screenX / 2, 150)
+        DrawText('MANIRIUS', verminVibes, 100, (255, 255, 255), screen, screenX / 2, 150)
 
         startButton.Update(screen, click)
+        settingsButton.Update(screen, click)
         quitButton.Update(screen, click)
+
+        #endregion
 
         pygame.display.update()
         clock.tick(60)
 
 def Game():
+
+    creator = pygame.image.load("Sprites/theCreatorTeste.png").convert_alpha()
+
+    '''dialogScreen = pygame.Surface((640, 640), pygame.SRCALPHA)
+    dialogScreen.fill((0, 0, 0))
+    dialogScreen.set_alpha(100)
+    dialogScreen.blit(creator, (384, 384))'''
+
     playerVelocity = [0,0]
     pauseGame = True
     space_released = False
     itemSelected = False
     playerStartPos = (64,128)
-    player = Player(playerStartPos[0], playerStartPos[1], 2)
-    angle = 0
+    player = Player(playerStartPos[0], playerStartPos[1])
     pointList = []
 
     valid = False
 
-    level = Level(map, "./Sprites/tileset.png", screen)
+    tilesetSprite = "Sprites/tileset.png"
+    level = Level(map, tilesetSprite, screen)
 
     while True:
-        screen.fill((100, 100, 100))
+        screen.fill((0, 0, 0))
 
         #Atualizações 
-        clock.tick(60)
         playerPos = player.rect
         selectedTile = calcMouseTilePos(map)
         selectedTileTranslated = (selectedTile[0] * 64, selectedTile[1] * 64)
+    
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT: #Fecha o jogo
@@ -448,7 +476,7 @@ def Game():
 
         tileRects = []
 
-        if not pauseGame and pointList:
+        if not pauseGame and not pointList:
             pauseGame = True
 
         if not pauseGame:
@@ -473,12 +501,18 @@ def Game():
 
         drawPoints(pointList, playerRect)
 
-        playerRotatedImg = pygame.transform.rotate(player.image, angle)
-        screen.blit(playerRotatedImg, (playerRect.x, playerRect.y))
+        screen.blit(player.image, (playerRect.x, playerRect.y))
 
-        pygame.display.update() #Atualiza a tela
+        #screen.blit(dialogScreen, (0,0))
+        #DrawText('oii faz isso ea fins \n e ta \n asd asiduqw huiqwd', kenneyPixel, 50, (255, 255, 255), screen, 256, 540)
+
         #endregion
 
+        clock.tick(60)
+        pygame.display.update() #Atualiza a tela
+
+
 #region Heliópolis
-MainMenu()
+#MainMenu()
+Game()
 #endregion
