@@ -26,32 +26,6 @@ map2 = [
     [51, 2, 2, 2, 2, 2, 2, 2, 2,53]
 ]
 
-map = [
-    [31,22,22,22,22,22,22,22,33,12],
-    [13,42,42,42,42,42,42,42,11,12],
-    [13,42,42,42,42,42,42,42,11,12],
-    [13,42,42,42,42,42,42,42,11,12],
-    [13,42,42,42,61,42,42,42,11,12],
-    [13,42,42,42,71,42,42,42,11,12],
-    [13,42,42,42,71,42,42,42,11,12],
-    [13,42,42,42,71,42,42,42,21,33],
-    [13,42,42,42,71,42,42,42,42,43],
-    [51, 2, 2, 2,62, 2, 2, 2, 2,53]
-]
-
-mapa = [
-    [31,22,22,22,22,22,22,32,22,33],
-    [13,42, 7,42,42,71,42,42,42,11],
-    [13,42,42,42,42,71,42,42,42,11],
-    [13,96,42,94,95,92,42,42,42,11],
-    [13,42,42,42,42,71,42,42,42,11],
-    [13,42,42,42,42,81,42,42,42,11],
-    [13,42,42,42,42,44,42,42,42,11],
-    [13,42,42,42,42, 1, 2, 2, 2,53],
-    [13,42,42,42,42,11,12,12,12,12],
-    [51, 2, 2, 2, 2,53,12,12,12,12]
-]
-
 class Object(pygame.sprite.Sprite):
     def __init__(self, tile, pos, cost):
         self.tile = tile
@@ -83,15 +57,14 @@ class PointHandler():
     def AddPoint(self, position):
         point = PointObj(position)
         self.pointList.append(point)
-        print("bucerta")
 
     def DeletePoint(self,index):
         self.pointList.pop(index)
 
-    def DrawPoints(self, playerRect):
+    def DrawPoints(self, screen, playerRect):
         if self.pointList:
             currentPoint = self.pointList[0]
-            pygame.draw.line(screen, (255, 255, 255), playerRect.rect.center, currentPoint.rect.center, 4)
+            pygame.draw.line(screen, (255, 255, 255), playerRect.center, currentPoint.rect.center, 4)
 
             for a in range(len(self.pointList) - 1):
                 pygame.draw.line(screen, (255, 255, 255), self.pointList[a].rect.center, self.pointList[a + 1].rect.center, 4)
@@ -99,23 +72,23 @@ class PointHandler():
         for point in self.pointList:
             screen.blit(point.image, (point.rect.x, point.rect.y))
 
-    def Update(self, screen, playerRect, leftClick, rightClick):
+    def Update(self, screen, playerRect, leftClick, rightClick, playMode, pauseGame):
 
-        if leftClick: 
-            self.AddPoint(calcMouseTilePos())
-            print("deveria penis")
+        if playMode:
+            if leftClick: 
+                self.AddPoint(calcMouseTilePos())
 
-        if rightClick:
-            self.DeletePoint(len(self.pointList) - 1)
+            if rightClick:
+                self.DeletePoint(len(self.pointList) - 1)
 
-        #if self.player.rect.center == self.pointList[0].rect.center:
-        #    self.DeletePoint(0)
+            if self.pointList:
+                if playerRect.center == self.pointList[0].rect.center:
+                    self.DeletePoint(0)
 
         self.DrawPoints(screen, playerRect)
 
-
 class Player(pygame.sprite.Sprite): #Classe do player
-    def __init__(self, startPos, pointHandler):
+    def __init__(self, startPos):
         super().__init__()
         self.playerSprite = "Sprites/player.png"
         self.image = pygame.image.load(self.playerSprite).convert_alpha()
@@ -123,13 +96,12 @@ class Player(pygame.sprite.Sprite): #Classe do player
         self.rect.x = startPos[0]
         self.rect.y = startPos[1]
         self.playerSpeed = 2
-        self.pointHandler = pointHandler
 
     def DrawPlayer(self, screen):
         screen.blit(self.image, (self.rect.x, self.rect.y))
 
-    def MovePlayer(self):
-        targetPoint = self.SearchTarget()
+    def MovePlayer(self, pointHandler):
+        targetPoint = self.SearchTarget(pointHandler)
         if targetPoint is not None:
             if self.rect.x - targetPoint.rect.x > 0:
                 self.rect.x -= self.playerSpeed
@@ -143,20 +115,20 @@ class Player(pygame.sprite.Sprite): #Classe do player
             elif self.rect.y - targetPoint.rect.y < 0:
                 self.rect.y += self.playerSpeed
 
-    def SearchTarget(self):
-        if self.pointHandler.pointList:
-            return self.pointHandler.pointList[0]
+    def SearchTarget(self, pointHandler):
+        if pointHandler.pointList:
+            return pointHandler.pointList[0]
         
         else:
             return None
         
-    def Update(self, screen):
+    def Update(self, screen, pointHandler):
 
-        if self.pointHandler.pointList:
-            if self.rect.center == self.pointHandler.pointList[0].rect.center:
-                self.pointHandler.DeletePoint(0)
+        if pointHandler.pointList:
+            if self.rect.center == pointHandler.pointList[0].rect.center:
+                pointHandler.DeletePoint(0)
 
-        self.MovePlayer()
+        self.MovePlayer(pointHandler)
         self.DrawPlayer(screen)
 
 def cutSpritesheet(spritesheet, spriteWidth, spriteHeight):
@@ -445,77 +417,184 @@ def MainMenu():
         pygame.display.update()
         clock.tick(60)
 
-def Scene1():
+class Scene():
+    def __init__(self, screen, clock, playerStartPos, mapArray):
+        self.screen = screen
+        self.clock = clock
+        self.playerStartPos = playerStartPos
+        self.mapArray = mapArray
 
-    #creator = pygame.image.load("Sprites/theCreatorTeste.png").convert_alpha()
+        self.pointHandler = PointHandler()
+        self.player = Player(self.playerStartPos)
+        self.level = Level(mapArray, "Sprites/tileset.png", screen)
+        
+        self.playMode = False
+        self.pauseGame = False
 
-    '''dialogScreen = pygame.Surface((640, 640), pygame.SRCALPHA)
-    dialogScreen.fill((0, 0, 0))
-    dialogScreen.set_alpha(100)
-    dialogScreen.blit(creator, (384, 384))'''
+        self.inputs = {'space': False, 'rightClick': False, 'leftClick': False, 'escape': False, 'tab': False, 'one': False}
 
-    playerStartPos = (64,128)
-    tilesetSprite = "Sprites/tileset.png"
-    level = Level(map, tilesetSprite, screen)
-    pointHandler = PointHandler()
-    player = Player((playerStartPos[0], playerStartPos[1]), pointHandler)
+    def PauseGame(self, pause):
+        self.pauseGame = pause
+        
+    def PlayMode(self, play):
+        self.playMode = play
 
+class Scene1(Scene):
+    def __init__(self, screen, clock):
+        playerStartPos = (64, 128)
+        mapArray = [
+            [31,22,22,22,22,22,22,22,33,12],
+            [13,42,42,42,42,42,42,42,11,12],
+            [13,42,42,42,42,42,42,42,11,12],
+            [13,42,42,42,42,42,42,42,11,12],
+            [13,42,42,42,61,42,42,42,11,12],
+            [13,42,42,42,71,42,42,42,11,12],
+            [13,42,42,42,71,42,42,42,11,12],
+            [13,42,42,42,71,42,42,42,21,33],
+            [13,42,42,42,71,42,42,42,42,43],
+            [51, 2, 2, 2,62, 2, 2, 2, 2,53]
+        ]
 
-    inputs = {'space': False, 'rightClick': False, 'leftClick': False}
+        self.clock = clock
+        self.screen = screen
 
-    while True:
-        screen.fill((0, 0, 0))
+        super().__init__(screen, clock, playerStartPos, mapArray)
 
-        #Atualizações de input
+    def Game(self):
 
-        for key in inputs: #reseta todos os inputs.
-            inputs[key] = False
+        while True:
+            screen.fill((0, 0, 0))
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT: #Fecha o jogo
-                pygame.quit()
-                sys.exit()
-            
-            if event.type == pygame.KEYDOWN: #Apertar tecla
-                if event.key == pygame.K_0:
-                    itemSelected = True
+            #Atualizações de input
 
-                else:
-                    itemSelected = False
+            for key in self.inputs: #reseta todos os inputs.
+                self.inputs[key] = False
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT: #Fecha o jogo
+                    pygame.quit()
+                    sys.exit()
                 
-                if event.key == pygame.K_SPACE:
-                    inputs['space'] = True
+                if event.type == pygame.KEYDOWN: #Apertar tecla
+                    if event.key == pygame.K_0:
+                        itemSelected = True
 
-            if event.type == pygame.MOUSEBUTTONDOWN: #Botão do mouse
+                    else:
+                        itemSelected = False
+                    
+                    if event.key == pygame.K_SPACE:
+                        self.inputs['space'] = True
+
+                if event.type == pygame.MOUSEBUTTONDOWN: #Botão do mouse
+                    
+                    if event.button == 1:
+                        self.inputs['leftClick'] = True
+
+                    if event.button == 3:
+                        self.inputs['rightClick'] = True    
+                            
+            #region Draw
+
+            self.level.DrawLevel()
+
+            #if itemSelected:
+            #    if pointList:
+            #        valid = validateTile(selectedTileTranslated, testPossibleTiles(pointList[len(pointList) - 1].rect))
+            #        drawPossibleTiles(testPossibleTiles(pointList[len(pointList) - 1].rect)) 
+            #        drawValidPoint(validateTile(selectedTileTranslated, testPossibleTiles(pointList[len(pointList) - 1].rect)), selectedTileTranslated)
+            #    else:
+            #        valid = validateTile(selectedTileTranslated, testPossibleTiles(playerPos))
+            #        drawPossibleTiles(testPossibleTiles(player.rect))
+            #        drawValidPoint(validateTile(selectedTileTranslated, testPossibleTiles(playerPos)), selectedTileTranslated)
+
+            self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'], True, True)
+            self.player.Update(self.screen, self.pointHandler)
+
+            #endregion
+
+            self.clock.tick(60)
+            pygame.display.update() #Atualiza a tela
+
+class Scene2(Scene):
+    def __init__(self, screen, clock):
+        playerStartPos = (64, 128)
+        mapArray = [
+            [31,22,22,22,22,22,22,32,22,33],
+            [13,42, 7,42,42,71,42,42,42,11],
+            [13,42,42,42,42,71,42,42,42,11],
+            [13,96,42,94,95,92,42,42,42,11],
+            [13,42,42,42,42,71,42,42,42,11],
+            [13,42,42,42,42,81,42,42,42,11],
+            [13,42,42,42,42,44,42,42,42,11],
+            [13,42,42,42,42, 1, 2, 2, 2,53],
+            [13,42,42,42,42,11,12,12,12,12],
+            [51, 2, 2, 2, 2,53,12,12,12,12]
+        ]
+
+        self.clock = clock
+        self.screen = screen
+
+        super().__init__(screen, clock, playerStartPos, mapArray)
+
+    def Game(self):
+
+        while True:
+            screen.fill((0, 0, 0))
+
+            #Atualizações de input
+
+            for key in self.inputs: #reseta todos os inputs.
+                self.inputs[key] = False
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT: #Fecha o jogo
+                    pygame.quit()
+                    sys.exit()
                 
-                if event.button == 1:
-                    inputs['leftClick'] = True
-                        
-                        
-        #region Draw
+                if event.type == pygame.KEYDOWN: #Apertar tecla
+                    if event.key == pygame.K_0:
+                        itemSelected = True
 
-        level.DrawLevel()
+                    else:
+                        itemSelected = False
+                    
+                    if event.key == pygame.K_SPACE:
+                        self.inputs['space'] = True
 
-        #if itemSelected:
-        #    if pointList:
-        #        valid = validateTile(selectedTileTranslated, testPossibleTiles(pointList[len(pointList) - 1].rect))
-        #        drawPossibleTiles(testPossibleTiles(pointList[len(pointList) - 1].rect)) 
-        #        drawValidPoint(validateTile(selectedTileTranslated, testPossibleTiles(pointList[len(pointList) - 1].rect)), selectedTileTranslated)
-        #    else:
-        #        valid = validateTile(selectedTileTranslated, testPossibleTiles(playerPos))
-        #        drawPossibleTiles(testPossibleTiles(player.rect))
-        #        drawValidPoint(validateTile(selectedTileTranslated, testPossibleTiles(playerPos)), selectedTileTranslated)
+                if event.type == pygame.MOUSEBUTTONDOWN: #Botão do mouse
+                    
+                    if event.button == 1:
+                        self.inputs['leftClick'] = True
 
-        pointHandler.Update(screen, player.rect, inputs['leftClick'], inputs['rightClick'])
-        player.Update(screen)
+                    if event.button == 3:
+                        self.inputs['rightClick'] = True    
+                            
+            #region Draw
 
-        #endregion
+            self.level.DrawLevel()
 
-        clock.tick(0)
-        pygame.display.update() #Atualiza a tela
+            #if itemSelected:
+            #    if pointList:
+            #        valid = validateTile(selectedTileTranslated, testPossibleTiles(pointList[len(pointList) - 1].rect))
+            #        drawPossibleTiles(testPossibleTiles(pointList[len(pointList) - 1].rect)) 
+            #        drawValidPoint(validateTile(selectedTileTranslated, testPossibleTiles(pointList[len(pointList) - 1].rect)), selectedTileTranslated)
+            #    else:
+            #        valid = validateTile(selectedTileTranslated, testPossibleTiles(playerPos))
+            #        drawPossibleTiles(testPossibleTiles(player.rect))
+            #        drawValidPoint(validateTile(selectedTileTranslated, testPossibleTiles(playerPos)), selectedTileTranslated)
 
+            self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'], True, True)
+            self.player.Update(self.screen, self.pointHandler)
 
+            #endregion
+
+            self.clock.tick(60)
+            pygame.display.update() #Atualiza a tela
 #region Heliópolis
 #MainMenu()
-Scene1()
+
+scene1 = Scene1(screen, clock)
+scene2 = Scene2(screen, clock)
+
+scene2.Game()
 #endregion
