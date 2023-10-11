@@ -13,19 +13,6 @@ verminVibes = "Fonts/Vermin Vibes 1989.ttf"
 kenneyPixel = "Fonts/Kenney Pixel.ttf"
 #endregion
 
-map2 = [
-    [31,22,63,22,22,22,22,22,22,33],
-    [13,42,71,42,42,42,42,42,42,11],
-    [13,42,71,42,71,42,42,42,42,11],
-    [13,42,85,95,92,42,42,42,42,11],
-    [13,42,42,42,71,42,42,42,42,11],
-    [13,42,42,42,42,83,42,42,42,11],
-    [13,42,42,42,42,42,42,42,42,11],
-    [13,42,42,42,42,42,91,92,92,72],
-    [13,42,42,42,42,42,42,42,42,43],
-    [51, 2, 2, 2, 2, 2, 2, 2, 2,53]
-]
-
 class Object(pygame.sprite.Sprite):
     def __init__(self, tile, pos, cost):
         self.tile = tile
@@ -72,10 +59,10 @@ class PointHandler():
         for point in self.pointList:
             screen.blit(point.image, (point.rect.x, point.rect.y))
 
-    def Update(self, screen, playerRect, leftClick, rightClick, playMode, pauseGame):
+    def Update(self, screen, playerRect, leftClick, rightClick, valid, playMode, pauseGame):
 
         if playMode:
-            if leftClick: 
+            if leftClick and valid: 
                 self.AddPoint(calcMouseTilePos())
 
             if rightClick:
@@ -197,65 +184,6 @@ def calcMouseTilePos():
     tileY = tileY * 64
 
     return (tileX, tileY) 
-
-def validateTile(mouseTilepos, tiles):
-    return mouseTilepos in tiles
-
-def drawValidPoint(valid, drawPos):
-    selectedTileSurface = pygame.Surface((64, 64), pygame.SRCALPHA)  # Use SRCALPHA para permitir transparência
-    pointSprite = pygame.image.load('Sprites/point.png').convert_alpha()
-
-
-    if not valid:
-        color = (255, 0, 0, 255)
-    else:
-        color = (0, 255, 0, 255)
-
-    selectedTileSurface.fill(color)
-    pointSprite.blit(selectedTileSurface, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
-    screen.blit(pointSprite, drawPos)
-
-def testPossibleTiles(objectRect):
-    objectTilePos = (objectRect[0] // 64, objectRect[1] // 64)
-    mapSizeX, mapSizeY = len(map[0]), len(map)
-
-    possibleTiles = []
-
-    def testTile(row, column):
-        if map[column][row] != 42:
-            return False
-        return True
-
-    for column in range(objectTilePos[0], mapSizeX):  # Da posição do objeto até o final do mapa
-        if not testTile(column, objectTilePos[1]):
-            break
-        possibleTiles.append(( column * 64, objectTilePos[1] * 64))
-
-    for column in range(objectTilePos[0], 0, -1):  # Da posição do objeto até o início do mapa
-        if not testTile(column, objectTilePos[1]):
-            break
-        possibleTiles.append(( column * 64, objectTilePos[1] * 64))
- 
-    for row in range(objectTilePos[1], mapSizeY):  
-        if not testTile(objectTilePos[0], row):
-            break
-        possibleTiles.append((objectTilePos[0] * 64, row * 64, ))
-
-    for row in range(objectTilePos[1], 0, -1):  
-        if not testTile(objectTilePos[0], row):
-            break
-        possibleTiles.append((objectTilePos[0] * 64, row * 64, ))
-
-    return possibleTiles
-    
-def drawPossibleTiles(tiles):
-        
-        for tile in tiles:
-            row, column = tile
-            surface = pygame.Surface((64, 64))
-            surface.fill((255, 255, 255))
-            surface.set_alpha(75)
-            screen.blit(surface, (row, column))
 
 class Level():
     def __init__(self, map, tilesetSprite, screen):
@@ -418,20 +346,30 @@ def MainMenu():
         clock.tick(60)
 
 class Scene():
-    def __init__(self, screen, clock, playerStartPos, mapArray):
+    def __init__(self, screen, clock, playerStartPos, winPos, mapArray):
         self.screen = screen
         self.clock = clock
+
         self.playerStartPos = playerStartPos
+        self.winPos = winPos
+
         self.mapArray = mapArray
 
         self.pointHandler = PointHandler()
+        self.tileHandler = TileHandler(mapArray)
         self.player = Player(self.playerStartPos)
         self.level = Level(mapArray, "Sprites/tileset.png", screen)
         
         self.playMode = False
         self.pauseGame = False
+        self.complete = False
+        self.itemSelected = False
 
         self.inputs = {'space': False, 'rightClick': False, 'leftClick': False, 'escape': False, 'tab': False, 'one': False}
+
+    def CheckProgress(self):
+        if self.player.rect.x == self.winPos[0] and self.player.rect.y == self.winPos[1]:
+            self.complete = True
 
     def PauseGame(self, pause):
         self.pauseGame = pause
@@ -441,7 +379,8 @@ class Scene():
 
 class Scene1(Scene):
     def __init__(self, screen, clock):
-        playerStartPos = (64, 128)
+        playerStartPos = (2*64, 8*64)
+        winPos = (8*64, 8*64)
         mapArray = [
             [31,22,22,22,22,22,22,22,33,12],
             [13,42,42,42,42,42,42,42,11,12],
@@ -458,7 +397,7 @@ class Scene1(Scene):
         self.clock = clock
         self.screen = screen
 
-        super().__init__(screen, clock, playerStartPos, mapArray)
+        super().__init__(screen, clock, playerStartPos, winPos, mapArray)
 
     def Game(self):
 
@@ -477,10 +416,7 @@ class Scene1(Scene):
                 
                 if event.type == pygame.KEYDOWN: #Apertar tecla
                     if event.key == pygame.K_0:
-                        itemSelected = True
-
-                    else:
-                        itemSelected = False
+                        self.itemSelected = True
                     
                     if event.key == pygame.K_SPACE:
                         self.inputs['space'] = True
@@ -495,6 +431,11 @@ class Scene1(Scene):
                             
             #region Draw
 
+            self.CheckProgress()
+
+            if self.complete:
+                print("passa de fase")
+
             self.level.DrawLevel()
 
             #if itemSelected:
@@ -507,7 +448,13 @@ class Scene1(Scene):
             #        drawPossibleTiles(testPossibleTiles(player.rect))
             #        drawValidPoint(validateTile(selectedTileTranslated, testPossibleTiles(playerPos)), selectedTileTranslated)
 
-            self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'], True, True)
+            if self.itemSelected:
+                if self.pointHandler.pointList:
+                    self.tileHandler.Update(self.screen, self.pointHandler.pointList[len(self.pointHandler.pointList) - 1].rect)
+                else:
+                    self.tileHandler.Update(self.screen, self.player.rect)
+
+            self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'],self.tileHandler.valid, True, True)
             self.player.Update(self.screen, self.pointHandler)
 
             #endregion
@@ -568,7 +515,13 @@ class Scene2(Scene):
 
                     if event.button == 3:
                         self.inputs['rightClick'] = True    
-                            
+            
+            if self.inputs['space']:
+                self.complete == True
+
+            if self.complete:
+                break
+
             #region Draw
 
             self.level.DrawLevel()
@@ -590,11 +543,173 @@ class Scene2(Scene):
 
             self.clock.tick(60)
             pygame.display.update() #Atualiza a tela
+
+class Scene3(Scene):
+    def __init__(self, screen, clock):
+        playerStartPos = (64, 128)
+        mapArray = [
+            [31,22,22,22,22,22,22,22,22,33],
+            [13,42,42,42,42,42,42,42,42,11],
+            [13,42,42,42,42,42,42,42,42,11],
+            [13,42,42,42,42,42,42, 1, 2,53],
+            [13,42,42,42,42,42,42,11,12,12],
+            [13,42,42,42,42, 1, 2,53,12,12],
+            [13,42,42,42,42,11,12,12,12,12],
+            [13,42,42, 1, 2,53,12,12,12,12],
+            [13,42,42,11,12,12,12,12,12,12],
+            [51,52,52,53,12,12,12,12,12,12]
+        ]
+
+        self.clock = clock
+        self.screen = screen
+
+        super().__init__(screen, clock, playerStartPos, mapArray)
+
+    def Game(self):
+
+        while True:
+            screen.fill((0, 0, 0))
+
+            #Atualizações de input
+
+            for key in self.inputs: #reseta todos os inputs.
+                self.inputs[key] = False
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT: #Fecha o jogo
+                    pygame.quit()
+                    sys.exit()
+                
+                if event.type == pygame.KEYDOWN: #Apertar tecla
+                    if event.key == pygame.K_0:
+                        itemSelected = True
+
+                    else:
+                        itemSelected = False
+                    
+                    if event.key == pygame.K_SPACE:
+                        self.inputs['space'] = True
+
+                if event.type == pygame.MOUSEBUTTONDOWN: #Botão do mouse
+                    
+                    if event.button == 1:
+                        self.inputs['leftClick'] = True
+
+                    if event.button == 3:
+                        self.inputs['rightClick'] = True    
+            
+            if self.inputs['space']:
+                self.complete == True
+
+            if self.complete:
+                break
+
+            #region Draw
+
+            self.level.DrawLevel()
+
+            #if itemSelected:
+            #    if pointList:
+            #        valid = validateTile(selectedTileTranslated, testPossibleTiles(pointList[len(pointList) - 1].rect))
+            #        drawPossibleTiles(testPossibleTiles(pointList[len(pointList) - 1].rect)) 
+            #        drawValidPoint(validateTile(selectedTileTranslated, testPossibleTiles(pointList[len(pointList) - 1].rect)), selectedTileTranslated)
+            #    else:
+            #        valid = validateTile(selectedTileTranslated, testPossibleTiles(playerPos))
+            #        drawPossibleTiles(testPossibleTiles(player.rect))
+            #        drawValidPoint(validateTile(selectedTileTranslated, testPossibleTiles(playerPos)), selectedTileTranslated)
+
+            self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'], True, True)
+            self.player.Update(self.screen, self.pointHandler)
+
+            #endregion
+
+            self.clock.tick(60)
+            pygame.display.update() #Atualiza a tela
+
+class TileHandler():
+    def __init__(self, mapArray):
+        self.possibleTiles = []
+        self.mapArray = mapArray
+        self.mouseTilePos = []
+        self.valid = False
+
+    def validateTile(self, mouseTilepos, tiles):
+        return mouseTilepos in tiles
+
+    def drawValidPoint(self, valid, drawPos):
+        selectedTileSurface = pygame.Surface((64, 64), pygame.SRCALPHA)  # Use SRCALPHA para permitir transparência
+        pointSprite = pygame.image.load('Sprites/point.png').convert_alpha()
+
+
+        if not valid:
+            color = (255, 0, 0, 255)
+        else:
+            color = (0, 255, 0, 255)
+
+        selectedTileSurface.fill(color)
+        pointSprite.blit(selectedTileSurface, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+        screen.blit(pointSprite, drawPos)
+
+    def testPossibleTiles(self, objectRect):
+        objectTilePos = (objectRect.x // 64, objectRect.y // 64)
+        mapSizeX, mapSizeY = len(self.mapArray[0]), len(self.mapArray)
+
+        possibleTiles = []
+
+        def testTile(row, column):
+            if self.mapArray[column][row] != 42:
+                return False
+            return True
+
+        for column in range(objectTilePos[0], mapSizeX):  # Da posição do objeto até o final do mapa
+            if not testTile(column, objectTilePos[1]):
+                break
+            possibleTiles.append(( column * 64, objectTilePos[1] * 64))
+
+        for column in range(objectTilePos[0], 0, -1):  # Da posição do objeto até o início do mapa
+            if not testTile(column, objectTilePos[1]):
+                break
+            possibleTiles.append(( column * 64, objectTilePos[1] * 64))
+    
+        for row in range(objectTilePos[1], mapSizeY):  
+            if not testTile(objectTilePos[0], row):
+                break
+            possibleTiles.append((objectTilePos[0] * 64, row * 64, ))
+
+        for row in range(objectTilePos[1], 0, -1):  
+            if not testTile(objectTilePos[0], row):
+                break
+            possibleTiles.append((objectTilePos[0] * 64, row * 64, ))
+
+        return possibleTiles
+        
+    def drawPossibleTiles(self, tiles, screen):
+            
+            for tile in tiles:
+                row, column = tile
+                surface = pygame.Surface((64, 64))
+                surface.fill((255, 255, 255))
+                surface.set_alpha(75)
+                screen.blit(surface, (row, column))
+
+    def Update(self, screen, objectRect):
+        self.possibleTiles = self.testPossibleTiles(objectRect) 
+
+        self.mouseTilePos = calcMouseTilePos()
+        self.valid = self.validateTile(self.mouseTilePos, self.possibleTiles)
+        
+        self.drawPossibleTiles(self.possibleTiles, screen)
+        self.drawValidPoint(self.valid, self.mouseTilePos)
+
 #region Heliópolis
 #MainMenu()
 
 scene1 = Scene1(screen, clock)
-scene2 = Scene2(screen, clock)
+#scene2 = Scene2(screen, clock)
+#scene3 = Scene3(screen, clock)
 
-scene2.Game()
+#scene3.Game()
+
+#scene1.Game()
+#scene2.Game()
 #endregion
