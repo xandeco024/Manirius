@@ -112,13 +112,14 @@ class Player(pygame.sprite.Sprite): #Classe do player
         else:
             return None
         
-    def Update(self, screen, pointHandler):
+    def Update(self, screen, pointHandler, playMode):
 
         if pointHandler.pointList:
             if self.rect.center == pointHandler.pointList[0].rect.center:
                 pointHandler.DeletePoint(0)
 
-        self.MovePlayer(pointHandler)
+        if playMode:
+            self.MovePlayer(pointHandler)
         self.DrawPlayer(screen)
 
 def cutSpritesheet(spritesheet, spriteWidth, spriteHeight):
@@ -320,9 +321,12 @@ class MainMenu():
         self.backgroundSprite = pygame.image.load("Sprites/background.jpg")
         self.background = Background(self.backgroundSprite, screen, [-1, -1])
 
+        self.logo = pygame.image.load("Sprites/logo1.png").convert_alpha()
+
         self.startButton = Button("START", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (200, 75), (220, 300), Scene1)
         self.settingsButton = Button("SETTINGS", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (200, 75), (220, 400), sys.exit)
         self.quitButton = Button("QUIT", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (200, 75), (220, 500), sys.exit)
+
         self.screenX, self.screenY = screen.get_size()
         self.click = False
 
@@ -345,7 +349,8 @@ class MainMenu():
             
             self.background.DrawBackground()
 
-            DrawText('MANIRIUS', verminVibes, 100, (255, 255, 255), self.screen, self.screenX / 2, 150)
+            self.screen.blit(self.logo, (self.screenX / 2 - 300, 50))
+            #DrawText('MANIRIUS', verminVibes, 100, (255, 255, 255), screen, self.screenX / 2, 150)
 
             self.startButton.Update(screen, click)
             self.settingsButton.Update(screen, click)
@@ -354,7 +359,7 @@ class MainMenu():
             #endregion
 
             pygame.display.update()
-            clock.tick(60)
+            self.clock.tick(60)
 
     def Draw(self):
         pass
@@ -363,6 +368,8 @@ class Scene():
     def __init__(self, screen, clock, playerStartPos, winPos, mapArray):
         self.screen = screen
         self.clock = clock
+
+        self.clockTick = 60
 
         self.playerStartPos = playerStartPos
         self.winPos = winPos
@@ -373,6 +380,8 @@ class Scene():
         self.tileHandler = TileHandler(mapArray)
         self.player = Player(self.playerStartPos)
         self.level = Level(mapArray, "Sprites/tileset.png", screen)
+
+        self.levelCompleteCanvas = LevelCompleteCanvas(screen)
         
         self.playMode = False
         self.pauseGame = False
@@ -388,55 +397,74 @@ class Scene():
             self.complete = True
 
     def EventCheck(self):
-            for key in self.inputs: #reseta todos os inputs.
-                self.inputs[key] = False
+        for key in self.inputs: #reseta todos os inputs.
+            self.inputs[key] = False
 
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT: #Fecha o jogo
-                    pygame.quit()
-                    sys.exit()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: #Fecha o jogo
+                pygame.quit()
+                sys.exit()
+            
+            if event.type == pygame.KEYDOWN: #Apertar tecla
+                if event.key == pygame.K_1:
+                    self.inputs['one'] = True
                 
-                if event.type == pygame.KEYDOWN: #Apertar tecla
-                    if event.key == pygame.K_0:
-                        self.itemSelected = True
-                    
-                    if event.key == pygame.K_SPACE:
-                        self.inputs['space'] = True
+                if event.key == pygame.K_SPACE:
+                    self.inputs['space'] = True
 
-                    if event.key == pygame.K_TAB:
-                        self.inputs['tab'] = True
+                if event.key == pygame.K_TAB:
+                    self.inputs['tab'] = True
 
-                if event.type == pygame.MOUSEBUTTONDOWN: #Botão do mouse
-                    
-                    if event.button == 1:
-                        self.inputs['leftClick'] = True
+            if event.type == pygame.MOUSEBUTTONDOWN: #Botão do mouse
+                
+                if event.button == 1:
+                    self.inputs['leftClick'] = True
 
-                    if event.button == 3:
-                        self.inputs['rightClick'] = True    
+                if event.button == 3:
+                    self.inputs['rightClick'] = True    
 
-    def GameUpdate(self):
+    def SceneUpdate(self):
+
+        self.CheckProgress()
 
         self.EventCheck()
 
         if self.inputs['space']:
             self.playMode = not self.playMode
 
+        if self.inputs['one']:
+            self.itemSelected = not self.itemSelected
+
         if self.inputs['tab']:
-            self.clockTick += 30
+            self.clockTick += 60
 
-        if self.clockTick > 120:
-            self.clockTick = 30
+            if self.clockTick > 180:
+                self.clockTick = 60
 
-        self.CheckProgress()
+        if self.playMode and self.itemSelected:
+            self.itemSelected = False
 
-        self.clock.tick(self.clockTick)
-
-class HUD():
+class LevelCompleteCanvas():
     def __init__(self, screen):
-        self.screen = screen
+        self.screenX, self.screenY = screen.get_size()
+        self.levelCompletePanel = pygame.Surface((self.screenX, self.screenY))
+        self.levelCompletePanel.fill((0,0,0))
+        self.levelCompletePanel.set_alpha(100)
 
-    def DrawHUD(self):
-        pass
+        self.nextLevelBtn = Button("Next Level", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (150, 50), (100, 350), sys.exit)
+        self.retryBtn = Button("Retry", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (150, 50), (390, 350), sys.exit)
+        self.mainMenuBtn = Button("Main Menu", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (150, 50), (390, 450), sys.exit)
+        self.levelSelectorBtn = Button("Level Selector", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (150, 50), (100, 450), sys.exit)
+
+    def Draw(self, screen, click):
+        screen.blit(self.levelCompletePanel, (0, 0))
+
+        self.nextLevelBtn.Update(screen, click)
+        self.retryBtn.Update(screen, click)
+        self.mainMenuBtn.Update(screen, click)
+        self.levelSelectorBtn.Update(screen, click)
+
+        DrawText('LEVEL COMPLETE!', verminVibes, 75, (255, 255, 255), screen, self.screenX / 2, self.screenY / 3)
 
 class Scene1(Scene):
     def __init__(self, screen, clock):
@@ -460,20 +488,18 @@ class Scene1(Scene):
 
         super().__init__(screen, clock, playerStartPos, winPos, mapArray)
 
-    def Game(self):
+    def Update(self):
 
-        while True:
+        while not self.complete:
             screen.fill((0, 0, 0))
-
-            #Atualizações de input
-            self.GameUpdate()
 
             #region Draw
 
-            print(self.playMode)
+            self.SceneUpdate()
 
-            if self.complete:
-                print("passa de fase")
+            self.SceneUpdate()
+
+            print(self.playMode)
 
             self.level.DrawLevel()
 
@@ -484,13 +510,24 @@ class Scene1(Scene):
                     self.tileHandler.Update(self.screen, self.player.rect)
 
             self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'],self.tileHandler.valid, True, True)
-            self.player.Update(self.screen, self.pointHandler)
+            self.player.Update(self.screen, self.pointHandler, self.playMode)
 
             pygame.display.update()
             #endregion
 
+            if self.complete:
+                while True:
+                    self.EventCheck()
+                    self.levelCompleteCanvas.Draw(screen, self.inputs['leftClick'])
+                    clock.tick(60)
+                    pygame.display.update()
+
+            self.clock.tick(self.clockTick)
+            pygame.display.update() #Atualiza a tela
+
 class Scene2(Scene):
     def __init__(self, screen, clock):
+        winPos = (8*64, 8*64)
         playerStartPos = (64, 128)
         mapArray = [
             [31,22,22,22,22,22,22,32,22,33],
@@ -508,69 +545,36 @@ class Scene2(Scene):
         self.clock = clock
         self.screen = screen
 
-        super().__init__(screen, clock, playerStartPos, mapArray)
+        super().__init__(screen, clock, playerStartPos, winPos, mapArray)
 
-    def Game(self):
+    def Update(self):
 
         while True:
             screen.fill((0, 0, 0))
 
             #Atualizações de input
 
-            for key in self.inputs: #reseta todos os inputs.
-                self.inputs[key] = False
+            self.SceneUpdate()
 
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT: #Fecha o jogo
-                    pygame.quit()
-                    sys.exit()
-                
-                if event.type == pygame.KEYDOWN: #Apertar tecla
-                    if event.key == pygame.K_0:
-                        self.itemSelected = True
-                    
-                    if event.key == pygame.K_SPACE:
-                        self.inputs['space'] = True
+            if self.complete:
+                break
 
-                if event.type == pygame.MOUSEBUTTONDOWN: #Botão do mouse
-                    
-                    if event.button == 1:
-                        self.inputs['leftClick'] = True
-
-                    if event.button == 3:
-                        self.inputs['rightClick'] = True    
-            
             #region Draw
 
             self.level.DrawLevel()
 
-            #if itemSelected:
-            #    if pointList:
-            #        valid = validateTile(selectedTileTranslated, testPossibleTiles(pointList[len(pointList) - 1].rect))
-            #        drawPossibleTiles(testPossibleTiles(pointList[len(pointList) - 1].rect)) 
-            #        drawValidPoint(validateTile(selectedTileTranslated, testPossibleTiles(pointList[len(pointList) - 1].rect)), selectedTileTranslated)
-            #    else:
-            #        valid = validateTile(selectedTileTranslated, testPossibleTiles(playerPos))
-            #        drawPossibleTiles(testPossibleTiles(player.rect))
-            #        drawValidPoint(validateTile(selectedTileTranslated, testPossibleTiles(playerPos)), selectedTileTranslated)
-
-            if self.itemSelected:
-                if self.pointHandler.pointList:
-                    self.tileHandler.Update(self.screen, self.pointHandler.pointList[len(self.pointHandler.pointList) - 1].rect)
-                else:
-                    self.tileHandler.Update(self.screen, self.player.rect)
-
-            self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'], True, True)
-            self.player.Update(self.screen, self.pointHandler)
+            self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'], self.tileHandler.valid, True, True)
+            self.player.Update(self.screen, self.pointHandler, self.playMode)
 
             #endregion
 
-            self.clock.tick(60)
+            self.clock.tick(self.clockTick)
             pygame.display.update() #Atualiza a tela
 
 class Scene3(Scene):
     def __init__(self, screen, clock):
         playerStartPos = (64, 128)
+        winPos = (8*64, 8*64)
         mapArray = [
             [31,22,22,22,22,22,22,22,22,33],
             [13,42,42,42,42,42,42,42,42,11],
@@ -587,64 +591,26 @@ class Scene3(Scene):
         self.clock = clock
         self.screen = screen
 
-        super().__init__(screen, clock, playerStartPos, mapArray)
+        super().__init__(screen, clock, playerStartPos, winPos, mapArray)
 
-    def Game(self):
+    def Update(self):
 
         while True:
             screen.fill((0, 0, 0))
 
             #Atualizações de input
 
-            for key in self.inputs: #reseta todos os inputs.
-                self.inputs[key] = False
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT: #Fecha o jogo
-                    pygame.quit()
-                    sys.exit()
-                
-                if event.type == pygame.KEYDOWN: #Apertar tecla
-                    if event.key == pygame.K_0:
-                        self.itemSelected = True
-                    
-                    if event.key == pygame.K_SPACE:
-                        self.inputs['space'] = True
-
-                if event.type == pygame.MOUSEBUTTONDOWN: #Botão do mouse
-                    
-                    if event.button == 1:
-                        self.inputs['leftClick'] = True
-
-                    if event.button == 3:
-                        self.inputs['rightClick'] = True    
+            self.SceneUpdate()
 
             #region Draw
 
             self.level.DrawLevel()
-
-            #if itemSelected:
-            #    if pointList:
-            #        valid = validateTile(selectedTileTranslated, testPossibleTiles(pointList[len(pointList) - 1].rect))
-            #        drawPossibleTiles(testPossibleTiles(pointList[len(pointList) - 1].rect)) 
-            #        drawValidPoint(validateTile(selectedTileTranslated, testPossibleTiles(pointList[len(pointList) - 1].rect)), selectedTileTranslated)
-            #    else:
-            #        valid = validateTile(selectedTileTranslated, testPossibleTiles(playerPos))
-            #        drawPossibleTiles(testPossibleTiles(player.rect))
-            #        drawValidPoint(validateTile(selectedTileTranslated, testPossibleTiles(playerPos)), selectedTileTranslated)
-
-            if self.itemSelected:
-                if self.pointHandler.pointList:
-                    self.tileHandler.Update(self.screen, self.pointHandler.pointList[len(self.pointHandler.pointList) - 1].rect)
-                else:
-                    self.tileHandler.Update(self.screen, self.player.rect)
-
             self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'], True, True)
-            self.player.Update(self.screen, self.pointHandler)
+            self.player.Update(self.screen, self.pointHandler, self.playMode)
 
             #endregion
 
-            self.clock.tick(60)
+            self.clock.tick(self.clockTick)
             pygame.display.update() #Atualiza a tela
 
 class TileHandler():
@@ -726,23 +692,22 @@ class TileHandler():
 class SceneManager():
     def __init__(self):
         pass
-
-    def Update(self):
+    
+    def LoadScene(self, scene):
         pass
 
-
-    def LoadScene():
+    def RunScene(self, index):
         pass
+
 #region Heliópolis
 mainMenu = MainMenu(screen, clock)
 
 scene1 = Scene1(screen, clock)
-#scene2 = Scene2(screen, clock)
+scene2 = Scene2(screen, clock)
 #scene3 = Scene3(screen, clock)
 
-mainMenu.Update()
-
-#scene1.Game()
-#scene2.Game()
-#scene3.Game()
+#mainMenu.Update()
+scene1.Update()
+#scene2.Update()
+#scene3.Update()
 #endregion
