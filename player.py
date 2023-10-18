@@ -1,4 +1,5 @@
 import pygame
+from utilities import cutSpritesheet
 
 class Player(pygame.sprite.Sprite): #Classe do player
     def __init__(self, startPos):
@@ -9,6 +10,21 @@ class Player(pygame.sprite.Sprite): #Classe do player
         self.rect.x = startPos[0]
         self.rect.y = startPos[1]
         self.playerSpeed = 2
+
+        self.animations = {
+            'idle': {
+                'spritesheet': "Sprites/player.png",
+                'frames': 1,
+                'fps': 1,
+            },
+            'sliding': {
+                'spritesheet': "Sprites/ROBB9/sliding.png",
+                'frames': 4,
+                'fps': 1,
+            },
+        }
+
+        self.slidingSprites = cutSpritesheet(self.animations['sliding']['spritesheet'], 64, 64)
 
     def DrawPlayer(self, screen):
         screen.blit(self.image, (self.rect.x, self.rect.y))
@@ -43,4 +59,11 @@ class Player(pygame.sprite.Sprite): #Classe do player
 
         if playMode:
             self.MovePlayer(pointHandler)
+
+        self.Animate()
+
         self.DrawPlayer(screen)
+
+    def Animate(self):
+        if pygame.time.get_ticks() % self.animations['sliding']['fps'] == 0:
+            self.image = self.slidingSprites[2]

@@ -2,6 +2,7 @@ import pygame
 import sys
 
 from player import Player
+from utilities import cutSpritesheet
 
 #region Inicio do codigo
 pygame.init()
@@ -78,26 +79,6 @@ class PointHandler():
                     self.DeletePoint(0)
 
         self.DrawPoints(screen, playerRect)
-
-def cutSpritesheet(spritesheet, spriteWidth, spriteHeight):
-    sheet = pygame.image.load(spritesheet).convert_alpha()
-    sheetSize = sheet.get_size()
-
-    sprites = []
-
-    columns = sheetSize[0] // spriteWidth
-    rows = sheetSize[1] // spriteHeight
-
-    for column in range(columns):
-        for row in range(rows):
-            x = row * spriteWidth
-            y = column * spriteHeight
-
-            sprite = sheet.subsurface(pygame.Rect(x, y, * (spriteWidth, spriteHeight)))
-
-            sprites.append(sprite)
-
-    return sprites
 
 def collisionTest(rect , tiles):
     hitList = []
@@ -416,7 +397,8 @@ class Scene1(Scene):
         pygame.display.update()
 
         if self.complete:
-            self.levelCompleteCanvas.Draw(screen, self.inputs['leftClick'])
+            #self.levelCompleteCanvas.Draw(screen, self.inputs['leftClick'])
+            self.sceneManager.LoadScene('scene2')
 
 class Scene2(Scene):
     def __init__(self, screen, clock, inputs, sceneManager):
@@ -424,11 +406,11 @@ class Scene2(Scene):
         playerStartPos = (64, 128)
         mapArray = [
             [31,22,22,22,22,22,22,32,22,33],
-            [13,42, 7,42,42,71,42,42,42,11],
+            [13,42,42,42,42,71,42,42,42,11],
             [13,42,42,42,42,71,42,42,42,11],
             [13,96,42,94,95,92,42,42,42,11],
             [13,42,42,42,42,71,42,42,42,11],
-            [13,42,42,42,42,81,42,42,42,11],
+            [13,42,42,42,42,42,42,42,42,11],
             [13,42,42,42,42,44,42,42,42,11],
             [13,42,42,42,42, 1, 2, 2, 2,53],
             [13,42,42,42,42,11,12,12,12,12],
@@ -438,16 +420,14 @@ class Scene2(Scene):
         super().__init__(screen, clock, playerStartPos, winPos, mapArray, inputs, sceneManager)
 
     def Update(self):
+        screen.fill((0, 0, 0))
 
-        while True:
-            screen.fill((0, 0, 0))
+        self.SceneUpdate()
 
-            self.SceneUpdate()
+        self.level.DrawLevel()
 
-            self.level.DrawLevel()
-
-            self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'], self.tileHandler.valid, True, True)
-            self.player.Update(self.screen, self.pointHandler, self.playMode)
+        self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'], self.tileHandler.valid, True, True)
+        self.player.Update(self.screen, self.pointHandler, self.playMode)
 
 class Scene3(Scene):
     def __init__(self, screen, clock, inputs, sceneManager):
@@ -469,15 +449,13 @@ class Scene3(Scene):
         super().__init__(screen, clock, playerStartPos, winPos, mapArray, inputs, sceneManager)
 
     def Update(self):
+        screen.fill((0, 0, 0))
 
-        while True:
-            screen.fill((0, 0, 0))
+        self.SceneUpdate()
 
-            self.SceneUpdate()
-
-            self.level.DrawLevel()
-            self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'], True, True)
-            self.player.Update(self.screen, self.pointHandler, self.playMode)
+        self.level.DrawLevel()
+        self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'], True, True)
+        self.player.Update(self.screen, self.pointHandler, self.playMode)
 
 class TileHandler():
     def __init__(self, mapArray):
@@ -589,9 +567,6 @@ class SceneManager():
     
     def LoadScene(self, scene):
         self.currentScene = scene
-
-    def RunScene(self):
-        self.currentScene.Update()
     
     def GetScene(self):
         return self.currentScene
@@ -600,7 +575,7 @@ class SceneManager():
 
 inputs = {'space': False, 'rightClick': False, 'leftClick': False, 'escape': False, 'tab': False, 'one': False}
 
-sceneManager = SceneManager('mainMenu')
+sceneManager = SceneManager('scene1')
 
 mainMenu = MainMenu(screen, clock, inputs, sceneManager)
 scene1 = Scene1(screen, clock, inputs, sceneManager)
