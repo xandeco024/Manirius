@@ -1,4 +1,5 @@
 import pygame
+import sys
 
 def cutSpritesheet(spritesheet_path, sprite_width, sprite_height):
     # Carrega a spritesheet
@@ -28,3 +29,43 @@ def cutSpritesheet(spritesheet_path, sprite_width, sprite_height):
             sprites.append(sprite)
 
     return sprites
+
+def calcMouseTilePos():
+
+    mousePosition = pygame.mouse.get_pos()
+
+    tileX = mousePosition[0] // 64
+    tileY = mousePosition[1] // 64
+
+    tileX = tileX * 64
+    tileY = tileY * 64
+
+    return (tileX, tileY) 
+
+def inputCheck(inputs):
+        
+        for key in inputs: #reseta todos os inputs.
+            inputs[key] = False
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: #Fecha o jogo
+                pygame.quit()
+                sys.exit()
+            
+            if event.type == pygame.KEYDOWN: #Apertar tecla
+                if event.key == pygame.K_1:
+                    inputs['one'] = True
+                
+                if event.key == pygame.K_SPACE:
+                    inputs['space'] = True
+
+                if event.key == pygame.K_TAB:
+                    inputs['tab'] = True
+
+            if event.type == pygame.MOUSEBUTTONDOWN: #Botão do mouse
+                
+                if event.button == 1:
+                    inputs['leftClick'] = True
+
+                if event.button == 3:
+                    inputs['rightClick'] = True 

@@ -11,16 +11,18 @@ class Player(pygame.sprite.Sprite): #Classe do player
         self.rect.y = startPos[1]
         self.playerSpeed = 2
 
+        self.animationTimer = 0
+        self.currentSprite = 0
         self.animations = {
             'idle': {
                 'spritesheet': "Sprites/player.png",
                 'frames': 1,
-                'fps': 1,
+                'speed': 1,
             },
             'sliding': {
                 'spritesheet': "Sprites/ROBB9/sliding.png",
                 'frames': 4,
-                'fps': 1,
+                'speed': 0.1,
             },
         }
 
@@ -60,10 +62,16 @@ class Player(pygame.sprite.Sprite): #Classe do player
         if playMode:
             self.MovePlayer(pointHandler)
 
-        self.Animate()
+        self.Animate('sliding')
 
         self.DrawPlayer(screen)
 
-    def Animate(self):
-        if pygame.time.get_ticks() % self.animations['sliding']['fps'] == 0:
-            self.image = self.slidingSprites[2]
+    def Animate(self, animation):
+        self.image = self.slidingSprites[int(self.currentSprite)]
+
+        self.currentSprite += self.animations[animation] ['speed']
+
+        if self.currentSprite > self.animations[animation] ['frames'] - 1:
+            self.currentSprite = 0
+                
+            

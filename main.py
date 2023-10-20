@@ -2,7 +2,7 @@ import pygame
 import sys
 
 from player import Player
-from utilities import cutSpritesheet
+from utilities import *
 
 #region Inicio do codigo
 pygame.init()
@@ -41,9 +41,9 @@ class PointObj(Object):
         self.rect.y = position[1]
 
 class PointHandler():
-    def __init__(self):
-
-        super().__init__()
+    def __init__(self, playMode):
+        
+        self.playMode = playMode
         self.pointSprite = pygame.image.load('Sprites/point.png').convert_alpha()
         self.pointList = []
 
@@ -65,13 +65,13 @@ class PointHandler():
         for point in self.pointList:
             screen.blit(point.image, (point.rect.x, point.rect.y))
 
-    def Update(self, screen, playerRect, leftClick, rightClick, valid, playMode, pauseGame):
+    def Update(self, screen, playerRect, leftClick, rightClick, valid, pauseGame):
 
-        if playMode:
+        if not self.playMode:
             if leftClick and valid: 
                 self.AddPoint(calcMouseTilePos())
 
-            if rightClick:
+            if rightClick and self.pointList:
                 self.DeletePoint(len(self.pointList) - 1)
 
             if self.pointList:
@@ -114,18 +114,6 @@ def move(rect, movement, tiles):
             rect.top = tile.bottom #caso haja colisão na parte de cima, seta o jogador na posição da parte debaixo do tile que colidiu.
             #collisionTypes['top'] = True
     return rect#, collisionTypes
-
-def calcMouseTilePos():
-
-    mousePosition = pygame.mouse.get_pos()
-
-    tileX = mousePosition[0] // 64
-    tileY = mousePosition[1] // 64
-
-    tileX = tileX * 64
-    tileY = tileY * 64
-
-    return (tileX, tileY) 
 
 class Level():
     def __init__(self, map, tilesetSprite, screen):
@@ -296,18 +284,18 @@ class Scene():
 
         self.mapArray = mapArray
 
-        self.pointHandler = PointHandler()
+        self.playMode = False
+        self.pauseGame = False
+        self.complete = False
+        self.itemSelected = False
+
+        self.pointHandler = PointHandler(self.playMode)
         self.tileHandler = TileHandler(mapArray)
         self.player = Player(self.playerStartPos)
         self.level = Level(mapArray, "Sprites/tileset.png", screen)
 
         self.levelCompleteCanvas = LevelCompleteCanvas(screen)
         
-        self.playMode = False
-        self.pauseGame = False
-        self.complete = False
-        self.itemSelected = False
-
         self.inputs = inputs
 
         self.sceneManager = sceneManager
@@ -324,9 +312,13 @@ class Scene():
 
         if self.inputs['space']:
             self.playMode = not self.playMode
+            if not self.playMode:
+                self.player.rect.x = self.playerStartPos[0]
+                self.player.rect.y = self.playerStartPos[1]
 
         if self.inputs['one']:
-            self.itemSelected = not self.itemSelected
+            if not self.playMode:
+                self.itemSelected = not self.itemSelected
 
         if self.inputs['tab']:
             self.clockTick += 30
@@ -336,6 +328,9 @@ class Scene():
 
         if self.playMode and self.itemSelected:
             self.itemSelected = False
+
+        if not self.pointHandler.pointList:
+            self.playMode = False
 
 class LevelCompleteCanvas():
     def __init__(self, screen):
@@ -391,7 +386,7 @@ class Scene1(Scene):
             else:
                 self.tileHandler.Update(self.screen, self.player.rect)
 
-        self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'],self.tileHandler.valid, True, True)
+        self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'],self.tileHandler.valid, True)
         self.player.Update(self.screen, self.pointHandler, self.playMode)
 
         pygame.display.update()
@@ -402,16 +397,16 @@ class Scene1(Scene):
 
 class Scene2(Scene):
     def __init__(self, screen, clock, inputs, sceneManager):
-        winPos = (8*64, 8*64)
-        playerStartPos = (64, 128)
+        winPos = (7*64, 1*64)
+        playerStartPos = (2*64, 8*64)
         mapArray = [
             [31,22,22,22,22,22,22,32,22,33],
             [13,42,42,42,42,71,42,42,42,11],
             [13,42,42,42,42,71,42,42,42,11],
             [13,96,42,94,95,92,42,42,42,11],
             [13,42,42,42,42,71,42,42,42,11],
+            [13,42,42,42,42,81,42,42,42,11],
             [13,42,42,42,42,42,42,42,42,11],
-            [13,42,42,42,42,44,42,42,42,11],
             [13,42,42,42,42, 1, 2, 2, 2,53],
             [13,42,42,42,42,11,12,12,12,12],
             [51, 2, 2, 2, 2,53,12,12,12,12]
@@ -426,8 +421,20 @@ class Scene2(Scene):
 
         self.level.DrawLevel()
 
-        self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'], self.tileHandler.valid, True, True)
+        if self.itemSelected:
+            if self.pointHandler.pointList:
+                self.tileHandler.Update(self.screen, self.pointHandler.pointList[len(self.pointHandler.pointList) - 1].rect)
+            else:
+                self.tileHandler.Update(self.screen, self.player.rect)
+
+        self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'],self.tileHandler.valid, True, True)
         self.player.Update(self.screen, self.pointHandler, self.playMode)
+
+        pygame.display.update()
+
+        if self.complete:
+            #self.levelCompleteCanvas.Draw(screen, self.inputs['leftClick'])
+            self.sceneManager.LoadScene('scene3')
 
 class Scene3(Scene):
     def __init__(self, screen, clock, inputs, sceneManager):
@@ -454,8 +461,21 @@ class Scene3(Scene):
         self.SceneUpdate()
 
         self.level.DrawLevel()
-        self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'], True, True)
+
+        if self.itemSelected:
+            if self.pointHandler.pointList:
+                self.tileHandler.Update(self.screen, self.pointHandler.pointList[len(self.pointHandler.pointList) - 1].rect)
+            else:
+                self.tileHandler.Update(self.screen, self.player.rect)
+
+        self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'],self.tileHandler.valid, True, True)
         self.player.Update(self.screen, self.pointHandler, self.playMode)
+
+        pygame.display.update()
+
+        if self.complete:
+            #self.levelCompleteCanvas.Draw(screen, self.inputs['leftClick'])
+            self.sceneManager.LoadScene('mainMenu')
 
 class TileHandler():
     def __init__(self, mapArray):
@@ -531,35 +551,7 @@ class TileHandler():
         self.valid = self.validateTile(self.mouseTilePos, self.possibleTiles)
         
         self.drawPossibleTiles(self.possibleTiles, screen)
-        self.drawValidPoint(self.valid, self.mouseTilePos)
-
-def inputCheck(inputs):
-        
-        for key in inputs: #reseta todos os inputs.
-            inputs[key] = False
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT: #Fecha o jogo
-                pygame.quit()
-                sys.exit()
-            
-            if event.type == pygame.KEYDOWN: #Apertar tecla
-                if event.key == pygame.K_1:
-                    inputs['one'] = True
-                
-                if event.key == pygame.K_SPACE:
-                    inputs['space'] = True
-
-                if event.key == pygame.K_TAB:
-                    inputs['tab'] = True
-
-            if event.type == pygame.MOUSEBUTTONDOWN: #Botão do mouse
-                
-                if event.button == 1:
-                    inputs['leftClick'] = True
-
-                if event.button == 3:
-                    inputs['rightClick'] = True    
+        self.drawValidPoint(self.valid, self.mouseTilePos)   
 
 class SceneManager():
     def __init__(self, initialScene):
@@ -586,8 +578,8 @@ scenes = {'mainMenu': mainMenu, 'scene1': scene1, 'scene2': scene2, 'scene3': sc
 
 while True:
     inputCheck(inputs)
-    #sceneManager.RunScene()
     scenes[sceneManager.GetScene()].Update()
     clock.tick(60)
     pygame.display.update()
+
 #endregion
