@@ -80,41 +80,6 @@ class PointHandler():
 
         self.DrawPoints(screen, playerRect)
 
-def collisionTest(rect , tiles):
-    hitList = []
-    for tile in tiles:
-        if rect.colliderect(tile):
-            hitList.append(tile)
-    return hitList
-
-def move(rect, movement, tiles):
-    #collisionTypes = {'top': False, 'bottom': False, 'left': False, 'right': False}
-
-    rect.x += movement[0] #MOVIMENTO HORIZONTAL
-
-    hitList = collisionTest(rect, tiles)
-    for tile in hitList:
-        if movement[0] > 0:
-            rect.right = tile.left #caso haja colisão na direita, seta o jogador na posição da parte da esquerda do tile que colidiu.
-            #collisionTypes['right'] = True
-
-        elif movement[0] < 0:
-            rect.left = tile.right #caso haja colisão na esquerda, seta o jogador na posição da parte da direita do tile que colidiu.
-            #collisionTypes['left'] = True
-
-    rect.y += movement[1] #MOVIMENTO VERTICA
-
-    hitList = collisionTest(rect, tiles)
-    for tile in hitList:
-        if movement[1] > 0: 
-            rect.bottom = tile.top #caso haja colisão na parte debaixo, seta o jogador na posição da parte de cima do tile que colidiu.
-            #collisionTypes['bottom'] = True
-
-        if movement[1] < 0:
-            rect.top = tile.bottom #caso haja colisão na parte de cima, seta o jogador na posição da parte debaixo do tile que colidiu.
-            #collisionTypes['top'] = True
-    return rect#, collisionTypes
-
 class Level():
     def __init__(self, map, tilesetSprite, screen):
 
@@ -144,24 +109,6 @@ class Level():
                     tileRects.append(pygame.Rect(x * tileWidth, y * tileHeight, tileWidth, tileHeight))
         
         self.screen.blit(tilemap, (0,0))
-
-def DrawText(text, font, fontSize, color, surface, x, y):
-    fontObj = pygame.font.Font(font, fontSize)
-    textObj = fontObj.render(text, 1, color)
-
-    lines = text.splitlines()  # divide o texto em linhas
-    for i, line in enumerate(lines):
-        textObj = fontObj.render(line, 1, color)
-        textRect = textObj.get_rect()
-        textRect.center = (x, y + i*fontSize)  # ajusta a posição y para cada linha
-        surface.blit(textObj, textRect)
-
-def CheckUICollision(rect):
-    mouseX, mouseY = pygame.mouse.get_pos()
-    if rect.collidepoint(mouseX, mouseY):
-        return True
-    else:
-        return False
 
 class Button():
     def __init__(self, text, font, fontSize, textNormalColor, textHoverColor, normalColor, hoverColor, btnSize, pos, command):
@@ -427,7 +374,7 @@ class Scene2(Scene):
             else:
                 self.tileHandler.Update(self.screen, self.player.rect)
 
-        self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'],self.tileHandler.valid, True, True)
+        self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'],self.tileHandler.valid, True)
         self.player.Update(self.screen, self.pointHandler, self.playMode)
 
         pygame.display.update()
@@ -468,7 +415,7 @@ class Scene3(Scene):
             else:
                 self.tileHandler.Update(self.screen, self.player.rect)
 
-        self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'],self.tileHandler.valid, True, True)
+        self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'],self.tileHandler.valid, True)
         self.player.Update(self.screen, self.pointHandler, self.playMode)
 
         pygame.display.update()
@@ -567,7 +514,7 @@ class SceneManager():
 
 inputs = {'space': False, 'rightClick': False, 'leftClick': False, 'escape': False, 'tab': False, 'one': False}
 
-sceneManager = SceneManager('scene1')
+sceneManager = SceneManager('mainMenu')
 
 mainMenu = MainMenu(screen, clock, inputs, sceneManager)
 scene1 = Scene1(screen, clock, inputs, sceneManager)
