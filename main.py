@@ -1,4 +1,5 @@
 import pygame
+import time
 import sys
 
 from player import Player
@@ -67,7 +68,7 @@ class PointHandler():
 
     def Update(self, screen, playerRect, leftClick, rightClick, valid, pauseGame):
 
-        if not self.playMode:
+        if self.playMode == False:
             if leftClick and valid: 
                 self.AddPoint(calcMouseTilePos())
 
@@ -219,6 +220,54 @@ class MainMenu():
         self.settingsButton.Update(screen, self.inputs['leftClick'])
         self.quitButton.Update(screen, self.inputs['leftClick'])
 
+class LevelCompleteCanvas():
+    def __init__(self, screen):
+        self.screenX, self.screenY = screen.get_size()
+        self.levelCompletePanel = pygame.Surface((self.screenX, self.screenY))
+        self.levelCompletePanel.fill((0,0,0))
+        self.levelCompletePanel.set_alpha(100)
+
+        self.nextLevelBtn = Button("Next Level", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (150, 50), (100, 350), sys.exit)
+        self.retryBtn = Button("Retry", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (150, 50), (390, 350), sys.exit)
+        self.mainMenuBtn = Button("Main Menu", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (150, 50), (390, 450), sys.exit)
+        self.levelSelectorBtn = Button("Level Selector", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (150, 50), (100, 450), sys.exit)
+
+    def Draw(self, screen, click):
+        screen.blit(self.levelCompletePanel, (0, 0))
+
+        self.nextLevelBtn.Update(screen, click)
+        self.retryBtn.Update(screen, click)
+        self.mainMenuBtn.Update(screen, click)
+        self.levelSelectorBtn.Update(screen, click)
+
+        DrawText('LEVEL COMPLETE!', verminVibes, 75, (255, 255, 255), screen, self.screenX / 2, self.screenY / 3)
+
+class UI():
+    def __init__(self):
+        pass
+
+    def Update(self):
+        pass
+
+class HUD():
+    def __init__(self, inputs, player):
+        self.player = player
+        self.inputs = inputs
+        self.startTimer = 100
+
+    def StartTimer(self):
+        self.startTimer = time.Time()
+
+    def DrawTime(self):
+        elapsedTime = time.Time() - self.startTimer
+        DrawText(str(elapsedTime), kenneyPixel, 30, (255, 255, 255), screen, 100, 100)
+
+    def DrawSpeed(self):
+        pass
+
+    def Update(self):
+        pass
+
 class Scene():
     def __init__(self, screen, clock, playerStartPos, winPos, mapArray, inputs, sceneManager):
         self.screen = screen
@@ -236,17 +285,19 @@ class Scene():
         self.complete = False
         self.itemSelected = False
 
+        self.inputs = inputs
+
+        self.sceneManager = sceneManager
+
         self.pointHandler = PointHandler(self.playMode)
         self.tileHandler = TileHandler(mapArray)
         self.player = Player(self.playerStartPos)
         self.level = Level(mapArray, "Sprites/tileset.png", screen)
 
+        self.hud = HUD(inputs, self.player)
+
         self.levelCompleteCanvas = LevelCompleteCanvas(screen)
-        
-        self.inputs = inputs
-
-        self.sceneManager = sceneManager
-
+    
         self.clockTick = 60
 
     def CheckProgress(self):
@@ -279,33 +330,11 @@ class Scene():
         if not self.pointHandler.pointList:
             self.playMode = False
 
-class LevelCompleteCanvas():
-    def __init__(self, screen):
-        self.screenX, self.screenY = screen.get_size()
-        self.levelCompletePanel = pygame.Surface((self.screenX, self.screenY))
-        self.levelCompletePanel.fill((0,0,0))
-        self.levelCompletePanel.set_alpha(100)
-
-        self.nextLevelBtn = Button("Next Level", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (150, 50), (100, 350), sys.exit)
-        self.retryBtn = Button("Retry", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (150, 50), (390, 350), sys.exit)
-        self.mainMenuBtn = Button("Main Menu", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (150, 50), (390, 450), sys.exit)
-        self.levelSelectorBtn = Button("Level Selector", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (150, 50), (100, 450), sys.exit)
-
-    def Draw(self, screen, click):
-        screen.blit(self.levelCompletePanel, (0, 0))
-
-        self.nextLevelBtn.Update(screen, click)
-        self.retryBtn.Update(screen, click)
-        self.mainMenuBtn.Update(screen, click)
-        self.levelSelectorBtn.Update(screen, click)
-
-        DrawText('LEVEL COMPLETE!', verminVibes, 75, (255, 255, 255), screen, self.screenX / 2, self.screenY / 3)
-
 class Scene1(Scene):
     def __init__(self, screen, clock, inputs, sceneManager):
         playerStartPos = (2*64, 8*64)
         winPos = (8*64, 8*64)
-        mapArray = [
+        mapArraya = [
             [31,22,22,22,22,22,22,22,33,12],
             [13,42,42,42,42,42,42,42,11,12],
             [13,42,42,42,42,42,42,42,11,12],
@@ -317,6 +346,20 @@ class Scene1(Scene):
             [13,42,42,42,71,42,42,42,42,43],
             [51, 2, 2, 2,62, 2, 2, 2, 2,53]
         ]
+
+        mapArray = [
+            [31, 22, 22, 22, 22, 22, 22, 22, 22, 33],
+            [13, 42, 42, 42, 42, 42, 42, 42, 42, 11],
+            [13, 42, 42, 42, 42, 42, 42, 42, 42, 11],
+            [13, 42, 42, 42, 42, 42, 42, 42, 42, 11],
+            [13, 42, 42, 42, 42, 42, 42, 42, 42, 11],
+            [13, 42, 42, 42, 42, 42, 42, 42, 42, 11],
+            [13, 42, 42, 42, 42, 42, 42, 42, 42, 11],
+            [13, 42, 42, 42, 42, 42, 42 ,2 ,2 ,53],
+            [13 ,2 ,2 ,2 ,2 ,2 ,2 ,2 ,2 ,53],
+        ]
+
+
 
         super().__init__(screen, clock, playerStartPos, winPos, mapArray, inputs, sceneManager)
 
@@ -339,7 +382,6 @@ class Scene1(Scene):
         pygame.display.update()
 
         if self.complete:
-            #self.levelCompleteCanvas.Draw(screen, self.inputs['leftClick'])
             self.sceneManager.LoadScene('scene2')
 
 class Scene2(Scene):
