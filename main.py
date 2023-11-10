@@ -36,7 +36,7 @@ class PointObj(Object):
         
         super().__init__(tile, pos, cost)
 
-        self.image = pygame.image.load('Sprites/point.png').convert_alpha()
+        self.image = pygame.image.load('Sprites/Objects/point.png').convert_alpha()
         self.rect = self.image.get_rect()
         self.rect.x = position[0]
         self.rect.y = position[1]
@@ -45,7 +45,6 @@ class PointHandler():
     def __init__(self, playMode):
         
         self.playMode = playMode
-        self.pointSprite = pygame.image.load('Sprites/point.png').convert_alpha()
         self.pointList = []
 
     def AddPoint(self, position):
@@ -190,10 +189,10 @@ class MainMenu():
         self.screen = screen
         self.clock = clock
 
-        self.backgroundSprite = pygame.image.load("Sprites/background.jpg")
+        self.backgroundSprite = pygame.image.load("Sprites/UI/background.jpg")
         self.background = Background(self.backgroundSprite, screen, [-1, -1])
 
-        self.logo = pygame.image.load("Sprites/logo1.png").convert_alpha()
+        self.logo = pygame.image.load("Sprites/UI/logo.png").convert_alpha()
 
         self.sceneManager = sceneManager
 
@@ -243,16 +242,20 @@ class LevelCompleteCanvas():
         DrawText('LEVEL COMPLETE!', verminVibes, 75, (255, 255, 255), screen, self.screenX / 2, self.screenY / 3)
 
 class UI():
-    def __init__(self):
-        pass
+    def __init__(self, player, gameManager, clock):
+        self.player = player
+        self.clock = clock
+        self.gameManager = gameManager
+
+        self.hud = HUD(self.player, self.gameManager)
 
     def Update(self):
-        pass
+        self.hud.Update()
 
 class HUD():
-    def __init__(self, inputs, player):
+    def __init__(self, player, gameManager):
         self.player = player
-        self.inputs = inputs
+        self.gameManager = gameManager
         self.startTimer = 100
 
     def StartTimer(self):
@@ -292,7 +295,7 @@ class Scene():
         self.pointHandler = PointHandler(self.playMode)
         self.tileHandler = TileHandler(mapArray)
         self.player = Player(self.playerStartPos)
-        self.level = Level(mapArray, "Sprites/tileset.png", screen)
+        self.level = Level(mapArray, "Sprites/Tileset/tileset.png", screen)
 
         self.hud = HUD(inputs, self.player)
 
@@ -334,7 +337,7 @@ class Scene1(Scene):
     def __init__(self, screen, clock, inputs, sceneManager):
         playerStartPos = (2*64, 8*64)
         winPos = (8*64, 8*64)
-        mapArraya = [
+        mapArray = [
             [31,22,22,22,22,22,22,22,33,12],
             [13,42,42,42,42,42,42,42,11,12],
             [13,42,42,42,42,42,42,42,11,12],
@@ -346,20 +349,6 @@ class Scene1(Scene):
             [13,42,42,42,71,42,42,42,42,43],
             [51, 2, 2, 2,62, 2, 2, 2, 2,53]
         ]
-
-        mapArray = [
-            [31, 22, 22, 22, 22, 22, 22, 22, 22, 33],
-            [13, 42, 42, 42, 42, 42, 42, 42, 42, 11],
-            [13, 42, 42, 42, 42, 42, 42, 42, 42, 11],
-            [13, 42, 42, 42, 42, 42, 42, 42, 42, 11],
-            [13, 42, 42, 42, 42, 42, 42, 42, 42, 11],
-            [13, 42, 42, 42, 42, 42, 42, 42, 42, 11],
-            [13, 42, 42, 42, 42, 42, 42, 42, 42, 11],
-            [13, 42, 42, 42, 42, 42, 42 ,2 ,2 ,53],
-            [13 ,2 ,2 ,2 ,2 ,2 ,2 ,2 ,2 ,53],
-        ]
-
-
 
         super().__init__(screen, clock, playerStartPos, winPos, mapArray, inputs, sceneManager)
 
@@ -478,7 +467,7 @@ class TileHandler():
 
     def drawValidPoint(self, valid, drawPos):
         selectedTileSurface = pygame.Surface((64, 64), pygame.SRCALPHA)  # Use SRCALPHA para permitir transparência
-        pointSprite = pygame.image.load('Sprites/point.png').convert_alpha()
+        pointSprite = pygame.image.load('Sprites/Objects/point.png').convert_alpha()
 
 
         if not valid:
@@ -540,7 +529,7 @@ class TileHandler():
         self.valid = self.validateTile(self.mouseTilePos, self.possibleTiles)
         
         self.drawPossibleTiles(self.possibleTiles, screen)
-        self.drawValidPoint(self.valid, self.mouseTilePos)   
+        self.drawValidPoint(self.valid, self.mouseTilePos)
 
 class SceneManager():
     def __init__(self, initialScene):
