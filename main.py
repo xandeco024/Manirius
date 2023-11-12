@@ -2,8 +2,10 @@ import pygame
 import time
 import sys
 
-from player import Player
-from utilities import *
+from ROBB9 import Player
+from Utilities import *
+from GameManager import GameManager
+from UI import *
 
 #region Inicio do codigo
 pygame.init()
@@ -69,7 +71,7 @@ class PointHandler():
 
         if self.playMode == False:
             if leftClick and valid: 
-                self.AddPoint(calcMouseTilePos())
+                self.AddPoint(CalcMouseTilePos())
 
             if rightClick and self.pointList:
                 self.DeletePoint(len(self.pointList) - 1)
@@ -97,7 +99,7 @@ class Level():
 
         tiles.insert(0, pygame.Surface((64,64)).convert_alpha())
 
-        sprites = cutSpritesheet(self.tilesetSprite, 64, 64)
+        sprites = CutSpritesheet(self.tilesetSprite, 64, 64)
         tiles.extend(sprites)
 
         tileWidth = 64
@@ -110,7 +112,7 @@ class Level():
         
         self.screen.blit(tilemap, (0,0))
 
-class Button():
+class UIButton():
     def __init__(self, text, font, fontSize, textNormalColor, textHoverColor, normalColor, hoverColor, btnSize, pos, command):
         self.text = text
         self.textNormalColor = textNormalColor
@@ -198,9 +200,9 @@ class MainMenu():
 
         self.inputs = inputs
 
-        self.startButton = Button("START", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (200, 75), (220, 300), self.OnStartBtnClick)
-        self.settingsButton = Button("SETTINGS", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (200, 75), (220, 400), sys.exit)
-        self.quitButton = Button("QUIT", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (200, 75), (220, 500), sys.exit)
+        self.startButton = UIButton("START", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (200, 75), (220, 300), self.OnStartBtnClick)
+        self.settingsButton = UIButton("SETTINGS", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (200, 75), (220, 400), sys.exit)
+        self.quitButton = UIButton("QUIT", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (200, 75), (220, 500), sys.exit)
 
         self.screenX, self.screenY = screen.get_size()
 
@@ -226,10 +228,10 @@ class LevelCompleteCanvas():
         self.levelCompletePanel.fill((0,0,0))
         self.levelCompletePanel.set_alpha(100)
 
-        self.nextLevelBtn = Button("Next Level", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (150, 50), (100, 350), sys.exit)
-        self.retryBtn = Button("Retry", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (150, 50), (390, 350), sys.exit)
-        self.mainMenuBtn = Button("Main Menu", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (150, 50), (390, 450), sys.exit)
-        self.levelSelectorBtn = Button("Level Selector", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (150, 50), (100, 450), sys.exit)
+        self.nextLevelBtn = UIButton("Next Level", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (150, 50), (100, 350), sys.exit)
+        self.retryBtn = UIButton("Retry", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (150, 50), (390, 350), sys.exit)
+        self.mainMenuBtn = UIButton("Main Menu", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (150, 50), (390, 450), sys.exit)
+        self.levelSelectorBtn = UIButton("Level Selector", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (150, 50), (100, 450), sys.exit)
 
     def Draw(self, screen, click):
         screen.blit(self.levelCompletePanel, (0, 0))
@@ -240,36 +242,6 @@ class LevelCompleteCanvas():
         self.levelSelectorBtn.Update(screen, click)
 
         DrawText('LEVEL COMPLETE!', verminVibes, 75, (255, 255, 255), screen, self.screenX / 2, self.screenY / 3)
-
-class UI():
-    def __init__(self, player, gameManager, clock):
-        self.player = player
-        self.clock = clock
-        self.gameManager = gameManager
-
-        self.hud = HUD(self.player, self.gameManager)
-
-    def Update(self):
-        self.hud.Update()
-
-class HUD():
-    def __init__(self, player, gameManager):
-        self.player = player
-        self.gameManager = gameManager
-        self.startTimer = 100
-
-    def StartTimer(self):
-        self.startTimer = time.Time()
-
-    def DrawTime(self):
-        elapsedTime = time.Time() - self.startTimer
-        DrawText(str(elapsedTime), kenneyPixel, 30, (255, 255, 255), screen, 100, 100)
-
-    def DrawSpeed(self):
-        pass
-
-    def Update(self):
-        pass
 
 class Scene():
     def __init__(self, screen, clock, playerStartPos, winPos, mapArray, inputs, sceneManager):
@@ -296,10 +268,6 @@ class Scene():
         self.tileHandler = TileHandler(mapArray)
         self.player = Player(self.playerStartPos)
         self.level = Level(mapArray, "Sprites/Tileset/tileset.png", screen)
-
-        self.hud = HUD(inputs, self.player)
-
-        self.levelCompleteCanvas = LevelCompleteCanvas(screen)
     
         self.clockTick = 60
 
@@ -392,12 +360,16 @@ class Scene2(Scene):
 
         super().__init__(screen, clock, playerStartPos, winPos, mapArray, inputs, sceneManager)
 
+        self.button1 = Button((2*64, 1*64), 'batata')
+
     def Update(self):
         screen.fill((0, 0, 0))
 
         self.SceneUpdate()
 
         self.level.DrawLevel()
+
+        self.button1.Draw(screen)
 
         if self.itemSelected:
             if self.pointHandler.pointList:
@@ -525,7 +497,7 @@ class TileHandler():
     def Update(self, screen, objectRect):
         self.possibleTiles = self.testPossibleTiles(objectRect, "tower") 
 
-        self.mouseTilePos = calcMouseTilePos()
+        self.mouseTilePos = CalcMouseTilePos()
         self.valid = self.validateTile(self.mouseTilePos, self.possibleTiles)
         
         self.drawPossibleTiles(self.possibleTiles, screen)
@@ -541,6 +513,34 @@ class SceneManager():
     def GetScene(self):
         return self.currentScene
 
+class Button(pygame.sprite.Sprite):
+    def __init__(self, pos, link):
+        self.pos = pos
+        self.link = link
+        self.pressed = False
+
+        self.sprites = CutSpritesheet('Sprites/Objects/button.png', 64, 64)
+
+        self.image = self.sprites[0]
+        
+        self.rect = self.image.get_rect()
+        self.rect.x = self.pos[0]
+        self.rect.y = self.pos[1]
+
+        super().__init__()
+
+    def Press(self):
+        self.pressed = True
+        self.image = self.sprites[1]
+        #self.link.Pressed()
+
+    def Draw(self, screen):
+        screen.blit(self.image, (self.pos[0], self.pos[1]))
+
+    def Update(self):
+        pass
+
+
 #region Heliópolis
 
 inputs = {'space': False, 'rightClick': False, 'leftClick': False, 'escape': False, 'tab': False, 'one': False}
@@ -555,7 +555,7 @@ scene3 = Scene3(screen, clock, inputs, sceneManager)
 scenes = {'mainMenu': mainMenu, 'scene1': scene1, 'scene2': scene2, 'scene3': scene3}
 
 while True:
-    inputCheck(inputs)
+    InputCheck(inputs)
     scenes[sceneManager.GetScene()].Update()
     clock.tick(60)
     pygame.display.update()

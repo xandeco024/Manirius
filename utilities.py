@@ -1,7 +1,7 @@
 import pygame
 import sys
 
-def cutSpritesheet(spritesheet_path, sprite_width, sprite_height):
+def CutSpritesheet(spritesheet_path, sprite_width, sprite_height):
     # Carrega a spritesheet
     spritesheet = pygame.image.load(spritesheet_path).convert_alpha()
 
@@ -30,7 +30,7 @@ def cutSpritesheet(spritesheet_path, sprite_width, sprite_height):
 
     return sprites
 
-def calcMouseTilePos():
+def CalcMouseTilePos():
 
     mousePosition = pygame.mouse.get_pos()
 
@@ -42,7 +42,7 @@ def calcMouseTilePos():
 
     return (tileX, tileY) 
 
-def inputCheck(inputs):
+def InputCheck(inputs):
         
         for key in inputs: #reseta todos os inputs.
             inputs[key] = False
@@ -70,7 +70,7 @@ def inputCheck(inputs):
                 if event.button == 3:
                     inputs['rightClick'] = True 
 
-def collisionTest(rect , tiles):
+def CollisionTest(rect , tiles):
     hitList = []
     for tile in tiles:
         if rect.colliderect(tile):
@@ -100,7 +100,7 @@ def move(rect, movement, tiles):
 
     rect.x += movement[0] #MOVIMENTO HORIZONTAL
 
-    hitList = collisionTest(rect, tiles)
+    hitList = CollisionTest(rect, tiles)
     for tile in hitList:
         if movement[0] > 0:
             rect.right = tile.left #caso haja colisão na direita, seta o jogador na posição da parte da esquerda do tile que colidiu.
@@ -112,7 +112,7 @@ def move(rect, movement, tiles):
 
     rect.y += movement[1] #MOVIMENTO VERTICA
 
-    hitList = collisionTest(rect, tiles)
+    hitList = CollisionTest(rect, tiles)
     for tile in hitList:
         if movement[1] > 0: 
             rect.bottom = tile.top #caso haja colisão na parte debaixo, seta o jogador na posição da parte de cima do tile que colidiu.
