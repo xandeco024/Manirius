@@ -3,13 +3,16 @@ from Utilities import CutSpritesheet
 
 class Player(pygame.sprite.Sprite): #Classe do player
     def __init__(self, startPos):
+
         super().__init__()
+
+        self.startPos = startPos
         self.playerSprite = "Sprites/ROBB9/ROBB9.png"
         self.image = pygame.image.load(self.playerSprite).convert_alpha()
         self.rect = self.image.get_rect()
-        self.rect.x = startPos[0]
-        self.rect.y = startPos[1]
-        self.playerSpeed = 2
+        self.rect.x = self.startPos[0]
+        self.rect.y = self.startPos[1]
+        self.playerSpeed = 4
 
         self.direction = [0,0]
 
@@ -120,3 +123,8 @@ class Player(pygame.sprite.Sprite): #Classe do player
             self.image = pygame.transform.rotate(self.image, 180)
         elif dir == [0, -1]:
             self.image = pygame.transform.rotate(self.image, 0)
+
+    def ReturnToStart(self):
+        self.rect.x = self.startPos[0]
+        self.rect.y = self.startPos[1]
+        self.direction = [0,0]

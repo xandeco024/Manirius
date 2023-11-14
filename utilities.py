@@ -42,7 +42,7 @@ def CalcMouseTilePos():
 
     return (tileX, tileY) 
 
-def InputCheck(inputs):
+def EventCheck(inputs):
         
         for key in inputs: #reseta todos os inputs.
             inputs[key] = False

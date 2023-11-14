@@ -6,6 +6,8 @@ from ROBB9 import Player
 from Utilities import *
 from GameManager import GameManager
 from UI import *
+from PointHandler import PointHandler
+from GridHandler import GridHandler
 
 #region Inicio do codigo
 pygame.init()
@@ -18,69 +20,6 @@ clock = pygame.time.Clock()
 verminVibes = "Fonts/Vermin Vibes 1989.ttf"
 kenneyPixel = "Fonts/Kenney Pixel.ttf"
 #endregion
-
-class Object(pygame.sprite.Sprite):
-    def __init__(self, tile, pos, cost):
-        self.tile = tile
-        self.pos = pos
-        self.cost = cost
-
-        super().__init__()
-
-    def ValidateTile():
-        pass
-
-class PointObj(Object):
-    def __init__(self, position):
-        tile = 42
-        pos = 40
-        cost = 1
-        
-        super().__init__(tile, pos, cost)
-
-        self.image = pygame.image.load('Sprites/Objects/point.png').convert_alpha()
-        self.rect = self.image.get_rect()
-        self.rect.x = position[0]
-        self.rect.y = position[1]
-
-class PointHandler():
-    def __init__(self, playMode):
-        
-        self.playMode = playMode
-        self.pointList = []
-
-    def AddPoint(self, position):
-        point = PointObj(position)
-        self.pointList.append(point)
-
-    def DeletePoint(self,index):
-        self.pointList.pop(index)
-
-    def DrawPoints(self, screen, playerRect):
-        if self.pointList:
-            currentPoint = self.pointList[0]
-            pygame.draw.line(screen, (255, 255, 255), playerRect.center, currentPoint.rect.center, 4)
-
-            for a in range(len(self.pointList) - 1):
-                pygame.draw.line(screen, (255, 255, 255), self.pointList[a].rect.center, self.pointList[a + 1].rect.center, 4)
-
-        for point in self.pointList:
-            screen.blit(point.image, (point.rect.x, point.rect.y))
-
-    def Update(self, screen, playerRect, leftClick, rightClick, valid, pauseGame):
-
-        if self.playMode == False:
-            if leftClick and valid: 
-                self.AddPoint(CalcMouseTilePos())
-
-            if rightClick and self.pointList:
-                self.DeletePoint(len(self.pointList) - 1)
-
-            if self.pointList:
-                if playerRect.center == self.pointList[0].rect.center:
-                    self.DeletePoint(0)
-
-        self.DrawPoints(screen, playerRect)
 
 class Level():
     def __init__(self, map, tilesetSprite, screen):
@@ -111,165 +50,52 @@ class Level():
                     tileRects.append(pygame.Rect(x * tileWidth, y * tileHeight, tileWidth, tileHeight))
         
         self.screen.blit(tilemap, (0,0))
-
-class UIButton():
-    def __init__(self, text, font, fontSize, textNormalColor, textHoverColor, normalColor, hoverColor, btnSize, pos, command):
-        self.text = text
-        self.textNormalColor = textNormalColor
-        self.textHoverColor = textHoverColor
-        self.font = font
-        self.fontSize = fontSize
-        self.btnSize = btnSize
-        self.pos = pos
-        self.normalColor = normalColor
-        self.hoverColor = hoverColor
-        self.command = command
-        self.normalSurface = self.CreateSurface(self.textNormalColor, self.normalColor)
-        self.hoverSurface = self.CreateSurface(self.textHoverColor, self.hoverColor)
-        self.buttonRect = pygame.Rect(self.pos, self.btnSize)
-    
-    def CreateSurface(self, textColor, btnColor):
-        surface = pygame.Surface(self.btnSize)
-        surface.fill(btnColor)
-        font = pygame.font.Font(self.font, self.fontSize)
-        textObj = font.render(self.text, 1, textColor)
-        textRect = textObj.get_rect(center = (self.btnSize[0] / 2, self.btnSize[1] / 2))
-        surface.blit(textObj, textRect)
-        return surface      
-
-    def Update(self, surface, click):
-
-        if CheckUICollision(self.buttonRect):
-            surface.blit(self.hoverSurface, self.pos)
-            if click:
-                self.command()
-
-        else:
-            surface.blit(self.normalSurface, self.pos)
         
-class Background():
-    def __init__(self, backgroundSprite, screen, speed):
-        self.backgroundSprite = backgroundSprite
-        self.screen = screen
-        self.speed = speed
-        self.offset = [0, 0]
-
-    def DrawBackground(self):
-        bgX, bgY = self.backgroundSprite.get_size()
-        screenX, screenY = self.screen.get_size()
-
-        xRepeat = screenX // bgX + 2
-        yRepeat = screenY // bgY + 2
-
-        if self.speed[0] >= 0:
-            self.offset[0] += self.speed[0]
-            if self.offset[0] >= bgX:
-                self.offset[0] = 0
-
-        elif self.speed[0] < 0:
-            self.offset[0] += self.speed[0]
-            if self.offset[0] <= -bgX:
-                self.offset[0] = 0
-
-        if self.speed[1] >= 0:
-            self.offset[1] += self.speed[1]
-            if self.offset[1] >= bgY:
-                self.offset[1] = 0
-        
-        elif self.speed[1] < 0:
-            self.offset[1] += self.speed[1]
-            if self.offset[1] <= -bgY:
-                self.offset[1] = 0
-
-
-        for x in range(xRepeat):
-            for y in range(yRepeat):
-                screen.blit(self.backgroundSprite, ((x * bgX) + self.offset[0], (y * bgY) + self.offset[1]))
-
 class MainMenu():
-    def __init__(self, screen, clock, inputs, sceneManager):
+    def __init__(self, screen, inputs, sceneManager):
         self.screen = screen
-        self.clock = clock
 
-        self.backgroundSprite = pygame.image.load("Sprites/UI/background.jpg")
-        self.background = Background(self.backgroundSprite, screen, [-1, -1])
+        #self.backgroundSprite = pygame.image.load("Sprites/UI/background.jpg")
+        #self.background = Background(self.backgroundSprite, screen, [-1, -1])
 
-        self.logo = pygame.image.load("Sprites/UI/logo.png").convert_alpha()
+        #self.logo = pygame.image.load("Sprites/UI/logo.png").convert_alpha()
 
         self.sceneManager = sceneManager
 
         self.inputs = inputs
 
-        self.startButton = UIButton("START", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (200, 75), (220, 300), self.OnStartBtnClick)
-        self.settingsButton = UIButton("SETTINGS", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (200, 75), (220, 400), sys.exit)
-        self.quitButton = UIButton("QUIT", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (200, 75), (220, 500), sys.exit)
+        #self.startButton = UIButton("START", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (200, 75), (220, 300), self.OnStartBtnClick)
+        #self.settingsButton = UIButton("SETTI  NGS", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (200, 75), (220, 400), sys.exit)
+        #self.quitButton = UIButton("QUIT", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (200, 75), (220, 500), sys.exit)
 
-        self.screenX, self.screenY = screen.get_size()
+        self.mainMenuCanvas = MainMenuCanvas(screen, inputs, sceneManager)
 
-    def OnStartBtnClick(self):
-        self.sceneManager.LoadScene('scene1')
+
 
     def Update(self):
         screen.fill((0, 0, 0))
-
-        self.background.DrawBackground()
-
-        self.screen.blit(self.logo, (self.screenX / 2 - 300, 50))
-        #DrawText('MANIRIUS', verminVibes, 100, (255, 255, 255), screen, self.screenX / 2, 150)
-
-        self.startButton.Update(screen, self.inputs['leftClick'])
-        self.settingsButton.Update(screen, self.inputs['leftClick'])
-        self.quitButton.Update(screen, self.inputs['leftClick'])
-
-class LevelCompleteCanvas():
-    def __init__(self, screen):
-        self.screenX, self.screenY = screen.get_size()
-        self.levelCompletePanel = pygame.Surface((self.screenX, self.screenY))
-        self.levelCompletePanel.fill((0,0,0))
-        self.levelCompletePanel.set_alpha(100)
-
-        self.nextLevelBtn = UIButton("Next Level", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (150, 50), (100, 350), sys.exit)
-        self.retryBtn = UIButton("Retry", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (150, 50), (390, 350), sys.exit)
-        self.mainMenuBtn = UIButton("Main Menu", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (150, 50), (390, 450), sys.exit)
-        self.levelSelectorBtn = UIButton("Level Selector", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (150, 50), (100, 450), sys.exit)
-
-    def Draw(self, screen, click):
-        screen.blit(self.levelCompletePanel, (0, 0))
-
-        self.nextLevelBtn.Update(screen, click)
-        self.retryBtn.Update(screen, click)
-        self.mainMenuBtn.Update(screen, click)
-        self.levelSelectorBtn.Update(screen, click)
-
-        DrawText('LEVEL COMPLETE!', verminVibes, 75, (255, 255, 255), screen, self.screenX / 2, self.screenY / 3)
+        self.mainMenuCanvas.Update()
 
 class Scene():
-    def __init__(self, screen, clock, playerStartPos, winPos, mapArray, inputs, sceneManager):
-        self.screen = screen
-        self.clock = clock
+    def __init__(self, playerStartPos, winPos, mapArray, sceneManager, gameManager):
 
-        self.clockTick = 60
+        self.gameManager = gameManager
+        self.sceneManager = sceneManager
+
+        self.screen = gameManager.screen
+        self.clock = gameManager.clock
 
         self.playerStartPos = playerStartPos
         self.winPos = winPos
 
         self.mapArray = mapArray
 
-        self.playMode = False
-        self.pauseGame = False
         self.complete = False
-        self.itemSelected = False
 
-        self.inputs = inputs
-
-        self.sceneManager = sceneManager
-
-        self.pointHandler = PointHandler(self.playMode)
-        self.tileHandler = TileHandler(mapArray)
+        self.pointHandler = PointHandler(self.gameManager)
+        self.tileHandler = GridHandler(self.mapArray, self.gameManager)
         self.player = Player(self.playerStartPos)
         self.level = Level(mapArray, "Sprites/Tileset/tileset.png", screen)
-    
-        self.clockTick = 60
 
     def CheckProgress(self):
         if self.player.rect.x == self.winPos[0] and self.player.rect.y == self.winPos[1]:
@@ -279,30 +105,8 @@ class Scene():
 
         self.CheckProgress()
 
-        if self.inputs['space']:
-            self.playMode = not self.playMode
-            if not self.playMode:
-                self.player.rect.x = self.playerStartPos[0]
-                self.player.rect.y = self.playerStartPos[1]
-
-        if self.inputs['one']:
-            if not self.playMode:
-                self.itemSelected = not self.itemSelected
-
-        if self.inputs['tab']:
-            self.clockTick += 30
-
-            if self.clockTick > 120:
-                self.clockTick = 60
-
-        if self.playMode and self.itemSelected:
-            self.itemSelected = False
-
-        if not self.pointHandler.pointList:
-            self.playMode = False
-
 class Scene1(Scene):
-    def __init__(self, screen, clock, inputs, sceneManager):
+    def __init__(self, sceneManager, gameManager):
         playerStartPos = (2*64, 8*64)
         winPos = (8*64, 8*64)
         mapArray = [
@@ -318,7 +122,7 @@ class Scene1(Scene):
             [51, 2, 2, 2,62, 2, 2, 2, 2,53]
         ]
 
-        super().__init__(screen, clock, playerStartPos, winPos, mapArray, inputs, sceneManager)
+        super().__init__(playerStartPos, winPos, mapArray, sceneManager, gameManager)
 
     def Update(self):
         screen.fill((0, 0, 0))
@@ -327,14 +131,14 @@ class Scene1(Scene):
 
         self.level.DrawLevel()
 
-        if self.itemSelected:
+        if self.gameManager.pointSelected:
             if self.pointHandler.pointList:
-                self.tileHandler.Update(self.screen, self.pointHandler.pointList[len(self.pointHandler.pointList) - 1].rect)
+                self.tileHandler.Update(self.pointHandler.pointList[len(self.pointHandler.pointList) - 1].rect)
             else:
-                self.tileHandler.Update(self.screen, self.player.rect)
+                self.tileHandler.Update(self.player.rect)
 
-        self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'],self.tileHandler.valid, True)
-        self.player.Update(self.screen, self.pointHandler, self.playMode)
+        self.pointHandler.Update(self.tileHandler.valid)
+        self.player.Update(self.screen, self.pointHandler, self.gameManager.playMode)
 
         pygame.display.update()
 
@@ -342,7 +146,7 @@ class Scene1(Scene):
             self.sceneManager.LoadScene('scene2')
 
 class Scene2(Scene):
-    def __init__(self, screen, clock, inputs, sceneManager):
+    def __init__(self, sceneManager, gameManager):
         winPos = (7*64, 1*64)
         playerStartPos = (2*64, 8*64)
         mapArray = [
@@ -358,7 +162,7 @@ class Scene2(Scene):
             [51, 2, 2, 2, 2,53,12,12,12,12]
         ]
 
-        super().__init__(screen, clock, playerStartPos, winPos, mapArray, inputs, sceneManager)
+        super().__init__(playerStartPos, winPos, mapArray, sceneManager, gameManager)
 
         self.button1 = Button((2*64, 1*64), 'batata')
 
@@ -387,7 +191,7 @@ class Scene2(Scene):
             self.sceneManager.LoadScene('scene3')
 
 class Scene3(Scene):
-    def __init__(self, screen, clock, inputs, sceneManager):
+    def __init__(self, sceneManager, gameManager):
         playerStartPos = (64, 128)
         winPos = (8*64, 8*64)
         mapArray = [
@@ -403,7 +207,7 @@ class Scene3(Scene):
             [51,52,52,53,12,12,12,12,12,12]
         ]
 
-        super().__init__(screen, clock, playerStartPos, winPos, mapArray, inputs, sceneManager)
+        super().__init__(playerStartPos, winPos, mapArray, sceneManager, gameManager)
 
     def Update(self):
         screen.fill((0, 0, 0))
@@ -427,92 +231,6 @@ class Scene3(Scene):
             #self.levelCompleteCanvas.Draw(screen, self.inputs['leftClick'])
             self.sceneManager.LoadScene('mainMenu')
 
-class TileHandler():
-    def __init__(self, mapArray):
-        self.possibleTiles = []
-        self.mapArray = mapArray
-        self.mouseTilePos = []
-        self.valid = False
-
-    def validateTile(self, mouseTilepos, tiles):
-        return mouseTilepos in tiles
-
-    def drawValidPoint(self, valid, drawPos):
-        selectedTileSurface = pygame.Surface((64, 64), pygame.SRCALPHA)  # Use SRCALPHA para permitir transparência
-        pointSprite = pygame.image.load('Sprites/Objects/point.png').convert_alpha()
-
-
-        if not valid:
-            color = (255, 0, 0, 255)
-        else:
-            color = (0, 255, 0, 255)
-
-        selectedTileSurface.fill(color)
-        pointSprite.blit(selectedTileSurface, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
-        screen.blit(pointSprite, drawPos)
-
-    def testPossibleTiles(self, objectRect, movement):
-        objectTilePos = (objectRect.x // 64, objectRect.y // 64)
-        mapSizeX, mapSizeY = len(self.mapArray[0]), len(self.mapArray)
-
-        possibleTiles = []
-
-        if movement == "tower":
-            def testTile(row, column):
-                if self.mapArray[column][row] != 42:
-                    return False
-                return True
-
-            for column in range(objectTilePos[0], mapSizeX):  # Da posição do objeto até o final do mapa
-                if not testTile(column, objectTilePos[1]):
-                    break
-                possibleTiles.append(( column * 64, objectTilePos[1] * 64))
-
-            for column in range(objectTilePos[0], 0, -1):  # Da posição do objeto até o início do mapa
-                if not testTile(column, objectTilePos[1]):
-                    break
-                possibleTiles.append(( column * 64, objectTilePos[1] * 64))
-        
-            for row in range(objectTilePos[1], mapSizeY):  
-                if not testTile(objectTilePos[0], row):
-                    break
-                possibleTiles.append((objectTilePos[0] * 64, row * 64, ))
-
-            for row in range(objectTilePos[1], 0, -1):  
-                if not testTile(objectTilePos[0], row):
-                    break
-                possibleTiles.append((objectTilePos[0] * 64, row * 64, ))
-
-            return possibleTiles
-        
-    def drawPossibleTiles(self, tiles, screen):
-            
-            for tile in tiles:
-                row, column = tile
-                surface = pygame.Surface((64, 64))
-                surface.fill((255, 255, 255))
-                surface.set_alpha(75)
-                screen.blit(surface, (row, column))
-
-    def Update(self, screen, objectRect):
-        self.possibleTiles = self.testPossibleTiles(objectRect, "tower") 
-
-        self.mouseTilePos = CalcMouseTilePos()
-        self.valid = self.validateTile(self.mouseTilePos, self.possibleTiles)
-        
-        self.drawPossibleTiles(self.possibleTiles, screen)
-        self.drawValidPoint(self.valid, self.mouseTilePos)
-
-class SceneManager():
-    def __init__(self, initialScene):
-        self.currentScene = initialScene
-    
-    def LoadScene(self, scene):
-        self.currentScene = scene
-    
-    def GetScene(self):
-        return self.currentScene
-
 class Button(pygame.sprite.Sprite):
     def __init__(self, pos, link):
         self.pos = pos
@@ -532,7 +250,7 @@ class Button(pygame.sprite.Sprite):
     def Press(self):
         self.pressed = True
         self.image = self.sprites[1]
-        #self.link.Pressed()
+        #self.link.Action()
 
     def Draw(self, screen):
         screen.blit(self.image, (self.pos[0], self.pos[1]))
@@ -540,24 +258,39 @@ class Button(pygame.sprite.Sprite):
     def Update(self):
         pass
 
+class SceneManager():
+    def __init__(self, initialScene, gameManager):
+        self.currentScene = initialScene
+        self.gameManager = gameManager
+
+    def LoadScene(self, scene):
+        self.currentScene = scene
+    
+    def GetScene(self):
+        return self.currentScene
 
 #region Heliópolis
 
 inputs = {'space': False, 'rightClick': False, 'leftClick': False, 'escape': False, 'tab': False, 'one': False}
 
-sceneManager = SceneManager('mainMenu')
+gameManager = GameManager(screen, clock, inputs)
+sceneManager = SceneManager('mainMenu', gameManager)
 
-mainMenu = MainMenu(screen, clock, inputs, sceneManager)
-scene1 = Scene1(screen, clock, inputs, sceneManager)
-scene2 = Scene2(screen, clock, inputs, sceneManager)
-scene3 = Scene3(screen, clock, inputs, sceneManager)
+mainMenu = MainMenu(screen, inputs, sceneManager)
+
+scene1 = Scene1(sceneManager, gameManager)
+scene2 = Scene2(sceneManager, gameManager)
+scene3 = Scene3(sceneManager, gameManager)
 
 scenes = {'mainMenu': mainMenu, 'scene1': scene1, 'scene2': scene2, 'scene3': scene3}
 
 while True:
-    InputCheck(inputs)
+    EventCheck(inputs)
     scenes[sceneManager.GetScene()].Update()
-    clock.tick(60)
+    if sceneManager.GetScene() != 'mainMenu':
+        gameManager.NewScene(scenes[sceneManager.GetScene()].player, scenes[sceneManager.GetScene()].mapArray, scenes[sceneManager.GetScene()].pointHandler, scenes[sceneManager.GetScene()].winPos)
+        gameManager.Update()
+    clock.tick(gameManager.clockTick)
     pygame.display.update()
 
 #endregion
