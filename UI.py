@@ -114,7 +114,15 @@ class HUDCanvas():
         #Control
 
         self.playButtonSprites = Utilities.CutSpritesheet('Sprites/UI/HUD/play btn.png', 64, 64)
-        self.playButton = UISpriteButton(self.playButtonSprites[0], (96, 32), self.gameManager.TogglePlayMode)
+        self.playButton = UISpriteButton(self.playButtonSprites[0], (320, 32), self.gameManager.TogglePlayMode)
+
+        self.speedButtonSprites = Utilities.CutSpritesheet('Sprites/UI/HUD/speed btn.png', 64, 64)
+        self.speedButton1 = UISpriteButton(self.speedButtonSprites[0], (32, 32), self.OnSpeed1Clicked)
+        self.speedButton2 = UISpriteButton(self.speedButtonSprites[3], (32+64, 32), self.OnSpeed2Clicked)
+        self.speedButton3 = UISpriteButton(self.speedButtonSprites[5], (32+128, 32), self.OnSpeed3Clicked)
+
+        self.creatorButtonSprites = Utilities.CutSpritesheet('Sprites/UI/HUD/creator btn.png', 128, 128)
+        self.creatorButton = UISpriteButton(self.creatorButtonSprites[1], (576, 576), self.gameManager.TogglePlayMode)
 
     def StartTimer(self):
         self.startTimer = time.Time()
@@ -135,8 +143,13 @@ class HUDCanvas():
 
     def DrawHUD(self):
         self.hudSurface.fill((0, 0, 0))
-
         self.playButton.DrawButton(self.hudSurface)
+
+        self.speedButton1.DrawButton(self.hudSurface)
+        self.speedButton2.DrawButton(self.hudSurface)
+        self.speedButton3.DrawButton(self.hudSurface)
+
+        self.creatorButton.DrawButton(self.hudSurface)
 
         self.gameManager.screen.blit(self.hudSurface, (0, 0))
 
@@ -147,6 +160,31 @@ class HUDCanvas():
             self.playButton.sprite = self.playButtonSprites[0]
 
         self.playButton.Update(self.gameManager.inputs['leftClick'])
+        self.speedButton1.Update(self.gameManager.inputs['leftClick'])
+        self.speedButton2.Update(self.gameManager.inputs['leftClick'])
+        self.speedButton3.Update(self.gameManager.inputs['leftClick'])
+
+    def HandleSpeedButtons(self):
+        if self.gameManager.inputs['tab']:
+            pass
+
+    def OnSpeed1Clicked(self):
+        self.gameManager.SimulationSpeed1()
+        self.speedButton1.sprite = self.speedButtonSprites[0]
+        self.speedButton2.sprite = self.speedButtonSprites[3]
+        self.speedButton3.sprite = self.speedButtonSprites[5]
+
+    def OnSpeed2Clicked(self):
+        self.gameManager.SimulationSpeed2()
+        self.speedButton1.sprite = self.speedButtonSprites[1]
+        self.speedButton2.sprite = self.speedButtonSprites[2]
+        self.speedButton3.sprite = self.speedButtonSprites[5]
+
+    def OnSpeed3Clicked(self):
+        self.gameManager.SimulationSpeed3()
+        self.speedButton1.sprite = self.speedButtonSprites[1]
+        self.speedButton2.sprite = self.speedButtonSprites[3]
+        self.speedButton3.sprite = self.speedButtonSprites[4]
 
 class MainMenuCanvas():
     def __init__(self, screen, inputs, sceneManager):

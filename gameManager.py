@@ -27,17 +27,29 @@ class GameManager():
         self.pointHandler = pointHandler
         self.winPos = winPos
 
-    def HandlePlaySpeed(self):
-        if self.inputs['tab']:
-            self.clockTick += 60
-            
-        if self.clockTick > 180:
-            self.clockTick = 60
+    def HandleSimulationSpeed(self):
+        if(self.clockTick == 60):
+            self.SimulationSpeed2()
+        elif(self.clockTick == 120):
+            self.SimulationSpeed3()
+        elif(self.clockTick == 180):
+            self.SimulationSpeed1()
 
+    def SimulationSpeed1(self):
+        self.clock.tick(60)
+        self.clock.tick(self.clockTick)
+    
+    def SimulationSpeed2(self):
+        self.clock.tick(120)
+        self.clock.tick(self.clockTick)
+    
+    def SimulationSpeed3(self):
+        self.clock.tick(180)
         self.clock.tick(self.clockTick)
 
     def Update(self):
-        self.HandlePlaySpeed()
+        if self.inputs['tab']:
+            self.HandleSimulationSpeed()
 
         if self.inputs['space']:
             self.TogglePlayMode()
