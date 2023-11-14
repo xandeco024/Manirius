@@ -40,9 +40,7 @@ class GameManager():
         self.HandlePlaySpeed()
 
         if self.inputs['space']:
-            self.playMode = not self.playMode
-            if not self.playMode:
-                self.Restart()
+            self.TogglePlayMode()
 
         if self.inputs['one']:
             if not self.playMode:
@@ -59,3 +57,8 @@ class GameManager():
         self.pointSelected = False
         self.pointHandler.pointList.clear()
         self.player.ReturnToStart()
+
+    def TogglePlayMode(self):
+        self.playMode = not self.playMode
+        if not self.playMode:
+            self.Restart()

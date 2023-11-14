@@ -1,9 +1,25 @@
-import pygame
-import time
-from Utilities import *
+import pygame, time, Utilities, sys
 
 verminVibes = "Fonts/Vermin Vibes 1989.ttf"
 kenneyPixel = "Fonts/Kenney Pixel.ttf"
+
+def DrawText(text, font, fontSize, color, surface, x, y):
+    fontObj = pygame.font.Font(font, fontSize)
+    textObj = fontObj.render(text, 1, color)
+
+    lines = text.splitlines()  # divide o texto em linhas
+    for i, line in enumerate(lines):
+        textObj = fontObj.render(line, 1, color)
+        textRect = textObj.get_rect()
+        textRect.center = (x, y + i*fontSize)  # ajusta a posição y para cada linha
+        surface.blit(textObj, textRect)
+
+def CheckUICollision(rect):
+    mouseX, mouseY = pygame.mouse.get_pos()
+    if rect.collidepoint(mouseX, mouseY):
+        return True
+    else:
+        return False
 
 class UIButton():
     def __init__(self, text, font, fontSize, textNormalColor, textHoverColor, normalColor, hoverColor, btnSize, pos, command):
@@ -32,7 +48,7 @@ class UIButton():
 
     def Update(self, surface, click):
 
-        if CheckUICollision(self.buttonRect):
+        if Utilities.CheckUICollision(self.buttonRect):
             surface.blit(self.hoverSurface, self.pos)
             if click:
                 self.command()
@@ -41,30 +57,38 @@ class UIButton():
             surface.blit(self.normalSurface, self.pos)
 
 class UISpriteButton(pygame.sprite.Sprite):
-    def __init__(self, screen, sprite, pos, command):
+    def __init__(self, sprite, pos, command):
 
-        self.screen = screen
         #self.brighten = 100
 
         super().__init__()
-        self.sprite = pygame.image.load(sprite)
+        self.sprite = sprite
         self.pos = pos
         self.command = command
         self.rect = self.sprite.get_rect(center = self.pos)
 
-    def DrawButton(self):
+    def DrawButton(self, surface):
         #self.sprite.fill((self.brighten, self.brighten, self.brighten), special_flags=pygame.BLEND_RGB_ADD)
-        self.screen.blit(self.sprite, self.rect)
+        surface.blit(self.sprite, self.rect)
 
     def Update(self, click):
-
-        #brighten = 128
-
-        self.DrawButton()
 
         if CheckUICollision(self.rect):
             if click:
                 self.command()
+
+class UIImage(pygame.sprite.Sprite):
+    def __init__(self, sprite, pos):
+        super().__init__()
+        self.sprite = sprite
+        self.pos = pos
+        self.rect = self.sprite.get_rect(center = self.pos)
+
+    def DrawImage(self, surface):
+        surface.blit(self.sprite, self.rect)
+
+    def Update(self):
+        pass
 
 class UI():
     def __init__(self, player, gameManager, clock, screen):
@@ -79,61 +103,109 @@ class UI():
         self.hud.Update()
 
 class HUDCanvas():
-    def __init__(self, ui):
-        self.player = ui.player
-        self.gameManager = ui.gameManager
+    def __init__(self, gameManager):
+        self.gameManager = gameManager
         self.startTimer = 100
+
+        self.screenX, self.screenY = gameManager.screen.get_size()
+        self.hudSurface = pygame.Surface((self.screenX, self.screenY))
+        self.hudSurface.set_colorkey((0, 0, 0))
+
+        #Control
+
+        self.playButtonSprites = Utilities.CutSpritesheet('Sprites/UI/HUD/play btn.png', 64, 64)
+        self.playButton = UISpriteButton(self.playButtonSprites[0], (96, 32), self.gameManager.TogglePlayMode)
 
     def StartTimer(self):
         self.startTimer = time.Time()
 
     def DrawTime(self):
         elapsedTime = time.Time() - self.startTimer
-        DrawText(str(elapsedTime), kenneyPixel, 30, (255, 255, 255), self.ui.screen, 100, 100)
+        Utilities.DrawText(str(elapsedTime), kenneyPixel, 30, (255, 255, 255), self.ui.screen, 100, 100)
+
+    def DrawPointsPlaced(self):
+        #DrawText(str(self.gameManager.pointHandler.pointsPlaced), kenneyPixel, 30, (255, 255, 255), surface, 50, 50)
+        pass
 
     def DrawSpeed(self):
         pass
 
-    def Update(self):
+    def SceneControl(self):
         pass
+
+    def DrawHUD(self):
+        self.hudSurface.fill((0, 0, 0))
+
+        self.playButton.DrawButton(self.hudSurface)
+
+        self.gameManager.screen.blit(self.hudSurface, (0, 0))
+
+    def Update(self):
+        if self.gameManager.playMode:
+            self.playButton.sprite = self.playButtonSprites[1]
+        else:
+            self.playButton.sprite = self.playButtonSprites[0]
+
+        self.playButton.Update(self.gameManager.inputs['leftClick'])
 
 class MainMenuCanvas():
     def __init__(self, screen, inputs, sceneManager):
 
-        self.sceneManager = sceneManager
-        self.inputs = inputs
         self.screen = screen
         self.screenX, self.screenY = screen.get_size()
 
-        self.background = Background("Sprites/UI/background.jpg", screen, [-1, -1])
+        self.menuSurface = pygame.Surface((self.screenX, self.screenY))
+        self.menuSurface.set_colorkey((0, 0, 0))
 
-        self.logo = pygame.image.load("Sprites/UI/logo.png").convert_alpha()
-        self.logoRect = self.logo.get_rect()
+        self.sceneManager = sceneManager
+        self.inputs = inputs
 
-        self.startButton = UISpriteButton(screen, "Sprites/UI/start btn.png", (self.screenX / 2, self.screenY / 2 - 50), self.OnStartBtnClick)
-        self.settingsButton = UISpriteButton(screen, "Sprites/UI/settings btn.png", (self.screenX / 2, self.screenY / 2 + 75), sys.exit)
-        self.quitButton = UISpriteButton(screen, "Sprites/UI/quit btn.png", (self.screenX / 2, self.screenY / 2 + 200), sys.exit)
+        self.background = Background("Sprites/UI/background.jpg", [-1, -1])
+
+        self.logoSprite = pygame.image.load("Sprites/UI/logo.png").convert_alpha()
+        self.logoImage = UIImage(self.logoSprite, (self.screenX / 2, 100))
+
+        self.startButtonSprites = Utilities.CutSpritesheet('Sprites/UI/start btn.png', 219, 102)
+        self.startButton = UISpriteButton(self.startButtonSprites[0], (self.screenX / 2, self.screenY / 2 - 50), self.OnStartBtnClick)
+        
+        self.settingsButtonSprites = Utilities.CutSpritesheet('Sprites/UI/settings btn.png', 219, 102)
+        self.settingsButton = UISpriteButton(self.settingsButtonSprites[0], (self.screenX / 2, self.screenY / 2 + 75), sys.exit)
+        
+        self.quitButtonSprites = Utilities.CutSpritesheet('Sprites/UI/quit btn.png', 219, 102)
+        self.quitButton = UISpriteButton(self.quitButtonSprites[0], (self.screenX / 2, self.screenY / 2 + 200), sys.exit)
 
     def OnStartBtnClick(self):
         self.sceneManager.LoadScene('scene1')
 
+    def DrawMenu(self):
+        self.menuSurface.fill((0, 0, 0))
+
+        self.background.DrawBackground(self.menuSurface)
+
+        self.logoImage.DrawImage(self.menuSurface)
+
+        self.startButton.DrawButton(self.menuSurface)
+        self.settingsButton.DrawButton(self.menuSurface)
+        self.quitButton.DrawButton(self.menuSurface)
+
+        self.screen.blit(self.menuSurface, (0, 0))
+
     def Update(self):
-        self.background.DrawBackground()
-        self.screen.blit(self.logo, (self.screenX / 2 - self.logoRect.width / 2 , 50))
         self.startButton.Update(self.inputs['leftClick'])
         self.settingsButton.Update(self.inputs['leftClick'])
         self.quitButton.Update(self.inputs['leftClick'])
 
+        self.DrawMenu()
+
 class Background():
-    def __init__(self, backgroundSprite, screen, speed):
+    def __init__(self, backgroundSprite, speed):
         self.sprite = pygame.image.load(backgroundSprite).convert_alpha()
-        self.screen = screen
         self.speed = speed
         self.offset = [0, 0]
 
-    def DrawBackground(self):
+    def DrawBackground(self, surface):
         bgX, bgY = self.sprite.get_size()
-        screenX, screenY = self.screen.get_size()
+        screenX, screenY = surface.get_size()
 
         xRepeat = screenX // bgX + 2
         yRepeat = screenY // bgY + 2
@@ -158,10 +230,9 @@ class Background():
             if self.offset[1] <= -bgY:
                 self.offset[1] = 0
 
-
         for x in range(xRepeat):
             for y in range(yRepeat):
-                self.screen.blit(self.sprite, ((x * bgX) + self.offset[0], (y * bgY) + self.offset[1]))
+                surface.blit(self.sprite, ((x * bgX) + self.offset[0], (y * bgY) + self.offset[1]))
 
 class LevelCompleteCanvas():
     def __init__(self, screen):
@@ -183,4 +254,4 @@ class LevelCompleteCanvas():
         self.mainMenuBtn.Update(screen, click)
         self.levelSelectorBtn.Update(screen, click)
 
-        DrawText('LEVEL COMPLETE!', verminVibes, 75, (255, 255, 255), screen, self.screenX / 2, self.screenY / 3)
+        Utilities.DrawText('LEVEL COMPLETE!', verminVibes, 75, (255, 255, 255), screen, self.screenX / 2, self.screenY / 3)

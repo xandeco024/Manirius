@@ -92,6 +92,7 @@ class Scene():
 
         self.complete = False
 
+        self.hudCanvas = HUDCanvas(self.gameManager)
         self.pointHandler = PointHandler(self.gameManager)
         self.tileHandler = GridHandler(self.mapArray, self.gameManager)
         self.player = Player(self.playerStartPos)
@@ -139,6 +140,9 @@ class Scene1(Scene):
 
         self.pointHandler.Update(self.tileHandler.valid)
         self.player.Update(self.screen, self.pointHandler, self.gameManager.playMode)
+
+        self.hudCanvas.Update()
+        self.hudCanvas.DrawHUD()
 
         pygame.display.update()
 
