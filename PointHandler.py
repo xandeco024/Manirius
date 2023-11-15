@@ -27,7 +27,7 @@ class PointHandler():
 
     def Update(self, valid):
 
-        if self.gameManager.playMode == False:
+        if not self.gameManager.playMode and self.gameManager.pointSelected:
             if  self.gameManager.inputs['leftClick'] and valid: 
                 self.AddPoint(Utilities.CalcMouseTilePos())
 
