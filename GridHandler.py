@@ -13,7 +13,7 @@ class GridHandler():
     def validateTile(self, mouseTilepos, tiles):
         return mouseTilepos in tiles
 
-    def drawValidPoint(self, valid, drawPos):
+    def drawValidPoint(self, valid, drawPos, surface):
         selectedTileSurface = pygame.Surface((64, 64), pygame.SRCALPHA)  # Use SRCALPHA para permitir transparência
         pointSprite = pygame.image.load('Sprites/Objects/point.png').convert_alpha()
 
@@ -24,7 +24,7 @@ class GridHandler():
 
         selectedTileSurface.fill(color)
         pointSprite.blit(selectedTileSurface, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
-        self.gameManager.screen.blit(pointSprite, drawPos)
+        surface.blit(pointSprite, drawPos)
 
     def testPossibleTiles(self, objectRect):
         objectTilePos = (objectRect.x // 64, objectRect.y // 64)
@@ -59,20 +59,21 @@ class GridHandler():
 
         return possibleTiles
         
-    def drawPossibleTiles(self, tiles):
+    def drawPossibleTiles(self, tiles, surface):
             
             for tile in tiles:
                 row, column = tile
-                surface = pygame.Surface((64, 64))
-                surface.fill((255, 255, 255))
-                surface.set_alpha(75)
-                self.gameManager.screen.blit(surface, (row, column))
+                tileSurface = pygame.Surface((64, 64))
+                tileSurface.fill((255, 255, 255))
+                tileSurface.set_alpha(75)
+                surface.blit(tileSurface, (row, column))
+
+    def Draw(self, surface):
+        self.drawPossibleTiles(self.possibleTiles, surface)
+        self.drawValidPoint(self.valid, self.mouseTilePos, surface)
 
     def Update(self, objectRect):
         self.possibleTiles = self.testPossibleTiles(objectRect) 
 
         self.mouseTilePos = Utilities.CalcMouseTilePos()
         self.valid = self.validateTile(self.mouseTilePos, self.possibleTiles)
-        
-        self.drawPossibleTiles(self.possibleTiles)
-        self.drawValidPoint(self.valid, self.mouseTilePos)

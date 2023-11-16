@@ -2,10 +2,11 @@ import pygame
 from Utilities import CutSpritesheet
 
 class Player(pygame.sprite.Sprite): #Classe do player
-    def __init__(self, startPos):
+    def __init__(self, startPos, pointHandler):
 
         super().__init__()
 
+        self.pointHandler = pointHandler
         self.startPos = startPos
         self.playerSprite = "Sprites/ROBB9/ROBB9.png"
         self.image = pygame.image.load(self.playerSprite).convert_alpha()
@@ -13,6 +14,7 @@ class Player(pygame.sprite.Sprite): #Classe do player
         self.rect.x = self.startPos[0]
         self.rect.y = self.startPos[1]
         self.playerSpeed = 4
+        self.canMove = False
 
         self.direction = [0,0]
 
@@ -66,11 +68,8 @@ class Player(pygame.sprite.Sprite): #Classe do player
         if self.direction != [0,0]:
             self.Animate('sliding')
 
-    def DrawPlayer(self, screen):
-        screen.blit(self.image, (self.rect.x, self.rect.y))
-
-    def MovePlayer(self, pointHandler):
-        targetPoint = self.SearchTarget(pointHandler)
+    def MovePlayer(self):
+        targetPoint = self.SearchTarget()
         if targetPoint is not None:
             if self.rect.x - targetPoint.rect.x > 0:
                 self.rect.x -= self.playerSpeed
@@ -91,28 +90,29 @@ class Player(pygame.sprite.Sprite): #Classe do player
         else :
             self.direction = [0,0]
 
-    def SearchTarget(self, pointHandler):
-        if pointHandler.pointList:
-            return pointHandler.pointList[0]
+    def SearchTarget(self):
+        if self.pointHandler.pointList:
+            return self.pointHandler.pointList[0]
         
         else:
             return None
         
-    def Update(self, screen, pointHandler, playMode):
+    def Update(self):
 
-        if pointHandler.pointList:
-            if self.rect.center == pointHandler.pointList[0].rect.center:
-                pointHandler.DeletePoint(0)
+        if self.pointHandler.pointList:
+            if self.rect.center == self.pointHandler.pointList[0].rect.center:
+                self.pointHandler.DeletePoint(0)
 
-        if playMode:
-            self.MovePlayer(pointHandler)
+        if self.canMove:
+            self.MovePlayer()
 
         self.HandleAnimations()
 
         self.Rotate(self.direction)
 
-        self.DrawPlayer(screen)
-                
+    def DrawPlayer(self, surface):
+        surface.blit(self.image, (self.rect.x, self.rect.y))
+
     def Rotate(self, dir):
 
         if dir == [1,0]:
