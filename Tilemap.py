@@ -7,7 +7,7 @@ class Level():
         self.map = map
         self.tilesetSprite = tilesetSprite
 
-    def DrawLevel(self, surface):
+    def Draw(self, surface):
 
         tileRects = []
         tiles = []

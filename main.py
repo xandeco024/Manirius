@@ -5,7 +5,6 @@ from Utilities import *
 from GameManager import GameManager
 from UI import *
 from PointHandler import PointHandler
-from GridHandler import GridHandler
 import Tilemap
 
 #region Inicio do codigo
@@ -22,17 +21,20 @@ kenneyPixel = "Fonts/Kenney Pixel.ttf"
 #endregion
         
 class MainMenu():
-    def __init__(self, screen, inputs, sceneManager):
+    def __init__(self, surface, inputs, sceneManager):   
         pygame.mixer.music.load('BGM/menu1.mp3')
         pygame.mixer.music.play(-1)
-        self.screen = screen
+        self.surface = surface
         self.sceneManager = sceneManager
         self.inputs = inputs
-        self.mainMenuCanvas = MainMenuCanvas(screen, inputs, sceneManager)
+        self.mainMenuCanvas = MainMenuCanvas(self.surface, self.inputs, self.sceneManager)
 
     def Update(self):
         screen.fill((0, 0, 0))
         self.mainMenuCanvas.Update()
+
+    def Draw(self):
+        self.mainMenuCanvas.DrawMenu()
 
 class Scene():
     def __init__(self, playerStartPos, winPos, mapArray, sceneManager):
@@ -54,8 +56,7 @@ class Scene():
         self.background = Background("Sprites/UI/background.jpg", [-0.5, -0.5])
 
         self.hudCanvas = HUDCanvas(self.gameManager)
-        self.pointHandler = PointHandler(self.gameManager)
-        self.tileHandler = GridHandler(self.mapArray, self.gameManager)
+        self.pointHandler = PointHandler(self.mapArray, self.gameManager)
         self.player = Player(self.playerStartPos, self.pointHandler)
 
         self.level = Tilemap.Level(mapArray, "Sprites/Tileset/tileset.png")
@@ -69,7 +70,7 @@ class Scene():
             self.complete = True
 
     def SceneUpdate(self):
-
+        print(CalcMouseTilePos())
         self.CheckProgress()
 
 class Scene1(Scene):
@@ -92,37 +93,29 @@ class Scene1(Scene):
         super().__init__(playerStartPos, winPos, mapArray, sceneManager)
 
     def Update(self):
-        screen.fill((0, 0, 0))
-
         self.SceneUpdate()
+
+        #self.pointHandler.Update()
+        self.player.Update()
+        self.hudCanvas.Update()
+
+        if self.complete:
+            self.sceneManager.LoadScene('scene2')
+
+    def Draw(self):
+        screen.fill((0, 0, 0))
 
         self.background.DrawBackground(screen)
 
-        self.level.DrawLevel(self.gameSurface)
-
-
-
-        if self.gameManager.pointSelected:
-            if self.pointHandler.pointList:
-                self.tileHandler.Update(self.pointHandler.pointList[len(self.pointHandler.pointList) - 1].rect)
-            else:
-                self.tileHandler.Update(self.player.rect)
-            self.tileHandler.Draw(self.gameSurface)
-
-        self.pointHandler.Update(self.tileHandler.valid)
-        self.player.Update()
-
-        self.player.DrawPlayer(self.gameSurface)
-
+        self.level.Draw(self.gameSurface)
+        #self.pointHandler.Draw(self.gameSurface)
+        self.player.Draw(self.gameSurface)
         self.screen.blit(self.gameSurface, (320,0))
 
-        self.hudCanvas.Update()
         self.hudCanvas.DrawHUD(screen)
 
         pygame.display.update()
 
-        if self.complete:
-            self.sceneManager.LoadScene('scene2')
 
 class Scene2(Scene):
     def __init__(self, sceneManager):
@@ -153,14 +146,7 @@ class Scene2(Scene):
         self.level.DrawLevel()
 
         self.button1.Draw(screen)
-
-        if self.itemSelected:
-            if self.pointHandler.pointList:
-                self.tileHandler.Update(self.screen, self.pointHandler.pointList[len(self.pointHandler.pointList) - 1].rect)
-            else:
-                self.tileHandler.Update(self.screen, self.player.rect)
-
-        self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'],self.tileHandler.valid, True)
+        self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'],self.gridHandler.valid, True)
         self.player.Update(self.screen, self.pointHandler, self.playMode)
 
         pygame.display.update()
@@ -197,11 +183,11 @@ class Scene3(Scene):
 
         if self.itemSelected:
             if self.pointHandler.pointList:
-                self.tileHandler.Update(self.screen, self.pointHandler.pointList[len(self.pointHandler.pointList) - 1].rect)
+                self.gridHandler.Update(self.screen, self.pointHandler.pointList[len(self.pointHandler.pointList) - 1].rect)
             else:
-                self.tileHandler.Update(self.screen, self.player.rect)
+                self.gridHandler.Update(self.screen, self.player.rect)
 
-        self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'],self.tileHandler.valid, True)
+        self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'],self.gridHandler.valid, True)
         self.player.Update(self.screen, self.pointHandler, self.playMode)
 
         pygame.display.update()
@@ -265,6 +251,7 @@ async def main():
     while True:
         EventCheck(inputs)
         scenes[sceneManager.GetScene()].Update()
+        scenes[sceneManager.GetScene()].Draw()
         if sceneManager.GetScene() != 'mainMenu':
             clock.tick(scenes[sceneManager.GetScene()].gameManager.clockTick)
         else:

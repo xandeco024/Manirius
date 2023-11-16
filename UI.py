@@ -71,7 +71,6 @@ class UISpriteButton(pygame.sprite.Sprite):
         self.isHovered = False
 
     def DrawButton(self, surface):
-        #self.sprite.fill((self.brighten, self.brighten, self.brighten), special_flags=pygame.BLEND_RGB_ADD)
         surface.blit(self.sprite, self.pos)
 
     def Update(self, click):
@@ -211,43 +210,50 @@ class HUDCanvas():
         self.creatorButton.Update(self.gameManager.inputs['leftClick'])
 
     def OnSpeedUpHover(self):
-        self.hoverSFX.play()
+        #self.hoverSFX.play()
+        pass
 
     def OnSpeedUpClicked(self):
         self.gameManager.SimulationSpeedUp()
 
     def OnSpeedDownHover(self):
-        self.hoverSFX.play()
+        #self.hoverSFX.play()
+        pass
 
     def OnSpeedDownClicked(self):
         self.gameManager.SimulationSpeedDown()
 
     def OnPauseButtonHover(self):
-        self.hoverSFX.play()
+        #self.hoverSFX.play()
+        pass
 
     def OnPauseButtonClicked(self):
         pass
 
     def OnPlayButtonHover(self):
-        self.hoverSFX.play()
+        #self.hoverSFX.play()
+        pass
 
     def OnPlayButtonClicked(self):
         self.gameManager.TogglePlayMode()
 
     def OnRestartButtonHover(self):
-        self.hoverSFX.play()
+        #self.hoverSFX.play()
+        pass
 
     def OnRestartButtonClicked(self):
         self.gameManager.RestartLevel()
 
     def OnCreatorButtonHover(self):
-        self.hoverSFX.play()
+        #self.hoverSFX.play()
+        pass
 
     def OnCreatorButtonClicked(self):
         pass
 
     def OnPointHudButtonHover(self):
-        self.hoverSFX.play()
+        #self.hoverSFX.play()
+        pass
 
     def OnPointHudButtonClicked(self):
         self.gameManager.TogglePointSelected()
@@ -270,7 +276,7 @@ class MainMenuCanvas():
         self.background = Background("Sprites/UI/background.jpg", [-1, -1])
 
         self.logoSprite = pygame.image.load("Sprites/UI/logo.png").convert_alpha()
-        self.logoImage = UIImage(self.logoSprite, (self.surfaceX / 2 - 225, 100))
+        self.logoImage = UIImage(self.logoSprite, (self.surfaceX / 2 - 260, 100))
 
         self.startButtonSprites = Utilities.CutSpritesheet('Sprites/UI/start btn.png', 256, 128)
         self.startButton = UISpriteButton(self.startButtonSprites[0], (self.surfaceX / 2 - 128, self.surfaceY / 2 - 50), self.OnStartButtonClick, self.OnStartButtonHover)
@@ -317,8 +323,6 @@ class MainMenuCanvas():
         self.startButton.Update(self.inputs['leftClick'])
         self.settingsButton.Update(self.inputs['leftClick'])
         self.quitButton.Update(self.inputs['leftClick'])
-
-        self.DrawMenu()
 
 class Background():
     def __init__(self, backgroundSprite, speed):

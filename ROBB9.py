@@ -99,10 +99,6 @@ class Player(pygame.sprite.Sprite): #Classe do player
         
     def Update(self):
 
-        if self.pointHandler.pointList:
-            if self.rect.center == self.pointHandler.pointList[0].rect.center:
-                self.pointHandler.DeletePoint(0)
-
         if self.canMove:
             self.MovePlayer()
 
@@ -110,7 +106,7 @@ class Player(pygame.sprite.Sprite): #Classe do player
 
         self.Rotate(self.direction)
 
-    def DrawPlayer(self, surface):
+    def Draw(self, surface):
         surface.blit(self.image, (self.rect.x, self.rect.y))
 
     def Rotate(self, dir):
