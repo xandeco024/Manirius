@@ -62,7 +62,6 @@ class Scene():
         self.level = Tilemap.Level(mapArray, "Sprites/Tileset/tileset.png")
 
         self.gameSurface = pygame.Surface((640, 640)).convert_alpha()
-
         self.gameManager.SetScene(self)
 
     def CheckProgress(self):
@@ -70,7 +69,6 @@ class Scene():
             self.complete = True
 
     def SceneUpdate(self):
-        print(CalcMouseTilePos())
         self.CheckProgress()
 
 class Scene1(Scene):
@@ -95,7 +93,7 @@ class Scene1(Scene):
     def Update(self):
         self.SceneUpdate()
 
-        #self.pointHandler.Update()
+        self.pointHandler.Update()
         self.player.Update()
         self.hudCanvas.Update()
 
@@ -108,7 +106,7 @@ class Scene1(Scene):
         self.background.DrawBackground(screen)
 
         self.level.Draw(self.gameSurface)
-        #self.pointHandler.Draw(self.gameSurface)
+        self.pointHandler.Draw(self.gameSurface)
         self.player.Draw(self.gameSurface)
         self.screen.blit(self.gameSurface, (320,0))
 

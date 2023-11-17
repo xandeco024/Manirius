@@ -3,28 +3,41 @@ import pygame, sys, Utilities
 class Level():
     def __init__(self, map, tilesetSprite):
 
-        super().__init__()
         self.map = map
         self.tilesetSprite = tilesetSprite
+        self.tiles, self.tilemap = self.Create()
+        self.MoveTileRects((320,0))
 
-    def Draw(self, surface):
+    def Create(self):
 
-        tileRects = []
         tiles = []
+        tileSprites = []
 
         tilemap = pygame.Surface((640, 640))
 
-        tiles.insert(0, pygame.Surface((64,64)).convert_alpha())
+        tileSprites.insert(0, pygame.Surface((64,64)).convert_alpha())
 
         sprites = Utilities.CutSpritesheet(self.tilesetSprite, 64, 64)
-        tiles.extend(sprites)
+        tileSprites.extend(sprites)
 
-        tileWidth = 64
-        tileHeight = 64
         for y, row in enumerate(self.map):
             for x, tileIndex in enumerate(row):
-                tilemap.blit(tiles[tileIndex], (x * tileWidth, y * tileHeight))
-                if tileIndex != 0 and tileIndex != 42:
-                    tileRects.append(pygame.Rect(x * tileWidth, y * tileHeight, tileWidth, tileHeight))
+                tile = Tile((x * 64, y * 64), tileSprites[tileIndex], tileIndex)
+                tilemap.blit(tile.image, tile.pos)
+                tiles.append(tile)
+
+        return tiles, tilemap
         
-        surface.blit(tilemap, (0,0))
+    def MoveTileRects(self,movement):
+        for tile in self.tiles:
+            tile.rect = tile.rect.move(movement)
+
+    def Draw(self, surface):
+        surface.blit(self.tilemap, (0,0))
+
+class Tile:
+    def __init__(self, pos, image, tileIndex):
+        self.pos = pos
+        self.image = image
+        self.tileIndex = tileIndex
+        self.rect = self.image.get_rect(topleft = self.pos)
