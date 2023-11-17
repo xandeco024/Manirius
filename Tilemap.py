@@ -41,3 +41,4 @@ class Tile:
         self.image = image
         self.tileIndex = tileIndex
         self.rect = self.image.get_rect(topleft = self.pos)
+        self.translatedRect = pygame.Rect(self.rect.x, self.rect.y, self.rect.width, self.rect.height)

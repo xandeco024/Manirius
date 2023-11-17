@@ -9,23 +9,21 @@ class PointHandler():
         #Grid Handler
         self.mapArray = mapArray
         self.tiles = []
-        self.possibleTiles = []
+        self.possibleTileRects = []
         self.valid = False
         self.currentObjectRect = None
 
     def UpdateSelectedTile(self):
-        self.tiles = self.gameManager.scene.level.tiles
-        self.selectedTile = self.tiles[0]
         mouseX, mouseY = pygame.mouse.get_pos()
         for tile in self.tiles:
             if tile.rect.collidepoint(mouseX,mouseY):
                 self.selectedTile = tile
 
-    def ValidateTile(self, selectedTile, tiles):
-        return selectedTile in tiles
+    def ValidateTileRect(self, selectedTileRect, possibleTileRects):
+        return selectedTileRect in possibleTileRects
 
     def DrawPointPreview(self, valid, selectedTile, surface):
-        drawPos = (selectedTile.rect.x - 320, selectedTile.rect.y)
+        drawPos = (selectedTile.translatedRect.x - 320, selectedTile.translatedRect.y)
         selectedTileSurface = pygame.Surface((64, 64), pygame.SRCALPHA)  # Use SRCALPHA para permitir transparência
         pointSprites = Utilities.CutSpritesheet('Sprites/Objects/point.png', 64, 64)
 
@@ -38,11 +36,11 @@ class PointHandler():
         pointSprites[0].blit(selectedTileSurface, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
         surface.blit(pointSprites[0], drawPos)
 
-    def TestPossibleTiles(self, objectRect):
+    def TestPossibleTileRects(self, objectRect):
         objectTilePos = (objectRect.x // 64, objectRect.y // 64)
         mapSizeX, mapSizeY = len(self.mapArray[0]), len(self.mapArray)
 
-        possibleTiles = []
+        possibleTileRects = []
 
         def testTile(row, column):
             if self.mapArray[column][row] != 42:
@@ -52,29 +50,29 @@ class PointHandler():
         for column in range(objectTilePos[0], mapSizeX):  # Da posição do objeto até o final do mapa
             if not testTile(column, objectTilePos[1]):
                 break
-            possibleTiles.append(( column * 64, objectTilePos[1] * 64))
+            possibleTileRects.append(pygame.Rect(column * 64, objectTilePos[1] * 64, 64, 64))
 
         for column in range(objectTilePos[0], 0, -1):  # Da posição do objeto até o início do mapa
             if not testTile(column, objectTilePos[1]):
                 break
-            possibleTiles.append(( column * 64, objectTilePos[1] * 64))
+            possibleTileRects.append(pygame.Rect(column * 64, objectTilePos[1] * 64, 64, 64))
     
         for row in range(objectTilePos[1], mapSizeY):  
             if not testTile(objectTilePos[0], row):
                 break
-            possibleTiles.append((objectTilePos[0] * 64, row * 64, ))
+            possibleTileRects.append(pygame.Rect(objectTilePos[0] * 64, row * 64, 64, 64))
 
         for row in range(objectTilePos[1], 0, -1):  
             if not testTile(objectTilePos[0], row):
                 break
-            possibleTiles.append((objectTilePos[0] * 64, row * 64, ))
+            possibleTileRects.append(pygame.Rect(objectTilePos[0] * 64, row * 64, 64, 64))
 
-        return possibleTiles
+        return possibleTileRects
 
     def DrawPossibleTiles(self, tiles, surface):
         
         for tile in tiles:
-            row, column = tile
+            row, column = tile.x, tile.y
             tileSurface = pygame.Surface((64, 64))
             tileSurface.fill((255, 255, 255))
             tileSurface.set_alpha(75)
@@ -100,35 +98,31 @@ class PointHandler():
             surface.blit(point.image, (point.rect.x, point.rect.y))
 
     def Draw(self, surface):
-        '''if self.gameManager.pointSelected:
-            self.DrawPossibleTiles(self.possibleTiles, surface)
+        if self.gameManager.pointSelected and not self.gameManager.playMode:
+            self.DrawPossibleTiles(self.possibleTileRects, surface)
             self.DrawPointPreview(self.valid, self.selectedTile, surface)
-            self.DrawPoints(surface)'''
-        
-        if self.gameManager.pointSelected:
-            self.DrawPossibleTiles(self.possibleTiles, surface)
+
+        self.DrawPoints(surface)
 
     def Update(self):
-        '''if self.gameManager.pointSelected and not self.gameManager.playMode:
-            self.tiles = self.gameManager.scene.level.tiles
 
+        if self.pointList:
+            self.currentObjectRect = self.pointList[len(self.pointList) - 1].rect
+            if self.pointList[0].rect.center.colliderect(self.gameManager.player.rect.center):
+                self.DeletePoint(0)
+        else:
+            self.currentObjectRect = self.gameManager.player.rect
+
+        if not self.gameManager.playMode and self.gameManager.pointSelected:
+            self.possibleTileRects = self.TestPossibleTileRects(self.currentObjectRect) 
             self.UpdateSelectedTile()
-            self.valid = self.ValidateTile(self.selectedTile, self.possibleTiles)
+            self.valid = self.ValidateTileRect(self.selectedTile.translatedRect, self.possibleTileRects)
 
             if  self.gameManager.inputs['leftClick'] and self.valid: 
                 self.AddPoint((self.selectedTile.x - 320, self.selectedTile.y))
 
             if self.gameManager.inputs['rightClick'] and self.pointList:
-                self.DeletePoint(len(self.pointList) - 1)'''
-
-        if self.pointList:
-            self.currentObjectRect = self.pointList[len(self.pointList) - 1].rect
-            if self.gameManager.player.rect.center == self.pointList[0].rect.center:
-                self.DeletePoint(0)
-        else:
-            self.currentObjectRect = self.gameManager.player.rect
-
-        self.possibleTiles = self.TestPossibleTiles(self.currentObjectRect) 
+                self.DeletePoint(len(self.pointList) - 1)
         
 class Object(pygame.sprite.Sprite):
     def __init__(self, tile, pos, cost):
