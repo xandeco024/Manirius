@@ -1,5 +1,4 @@
-import pygame
-from Utilities import CutSpritesheet
+import pygame, Utilities
 
 class Player(pygame.sprite.Sprite): #Classe do player
     def __init__(self, startPos, pointHandler):
@@ -18,55 +17,38 @@ class Player(pygame.sprite.Sprite): #Classe do player
 
         self.direction = [0,0]
 
-        self.animationTimer = 0
-        self.currentSprite = 0
-
         self.animations = {
             'idle': {
                 'spritesheet': "Sprites/ROBB9/ROBB9.png",
-                'frames': 1,
+                'size': (64, 64),
                 'speed': 1,
             },
             'sliding': {
                 'spritesheet': "Sprites/ROBB9/sliding sheet.png",
-                'frames': 4,
+                'size': (64, 64),
                 'speed': 0.1,
             },
             'dying': {
                 'spritesheet': "Sprites/ROBB9/dying sheet.png",
-                'frames': 4,
+                'size': (64, 64),
                 'speed': 0.1,
             },
             'damage': {
                 'spritesheet': "Sprites/ROBB9/damage sheet.png",
-                'frames': 4,
+                'size': (64, 64),
                 'speed': 0.1,
             }
         }
 
-        self.sprites = CutSpritesheet(self.animations['idle']['spritesheet'], 64, 64)
+        self.animator = Utilities.Animator(self.animations)
+        self.animator.SetAnimation('sliding')
 
-    def Animate(self, animation):
-        self.sprites = CutSpritesheet(self.animations[animation]['spritesheet'], 64, 64)
-
-        self.currentSprite += self.animations[animation] ['speed']
-
-        if self.currentSprite > self.animations[animation] ['frames'] - 1:
-            self.currentSprite = 0
-            done = True
-
-        else:
-            done = False
-
-        self.image = self.sprites[int(self.currentSprite)]
-        return done
-    
     def HandleAnimations(self):
         if self.direction == [0,0]:
-            self.Animate('idle')
+            self.animator.SetAnimation('sliding')
 
         if self.direction != [0,0]:
-            self.Animate('sliding')
+            self.animator.SetAnimation('sliding')
 
     def MovePlayer(self):
         targetPoint = self.SearchTarget()
@@ -102,11 +84,13 @@ class Player(pygame.sprite.Sprite): #Classe do player
         if self.canMove:
             self.MovePlayer()
 
-        self.HandleAnimations()
+        self.animator.Update()
+        #self.HandleAnimations()
 
         self.Rotate(self.direction)
 
     def Draw(self, surface):
+        self.image, self.done = self.animator.GetAnimation()
         surface.blit(self.image, (self.rect.x, self.rect.y))
 
     def Rotate(self, dir):

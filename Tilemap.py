@@ -1,4 +1,4 @@
-import pygame, sys, Utilities
+import pygame, Utilities
 
 class Level():
     def __init__(self, map, tilesetSprite):
@@ -17,7 +17,7 @@ class Level():
 
         tileSprites.insert(0, pygame.Surface((64,64)).convert_alpha())
 
-        sprites = Utilities.CutSpritesheet(self.tilesetSprite, 64, 64)
+        sprites = Utilities.CutSpritesheet(self.tilesetSprite, (64, 64))
         tileSprites.extend(sprites)
 
         for y, row in enumerate(self.map):

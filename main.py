@@ -20,6 +20,26 @@ verminVibes = "Fonts/Vermin Vibes 1989.ttf"
 kenneyPixel = "Fonts/Kenney Pixel.ttf"
 #endregion
         
+class SplashScreen():
+    def __init__(self, surface, inputs, sceneManager):
+        self.inputs = inputs
+        self.surface = surface
+        self.sceneManager = sceneManager
+
+        self.sprites = LoadSprites('Sprites/Splash/reduced')
+        self.spriteIndex = 0
+        self.speed = 0.3
+
+    def Update(self):
+        self.spriteIndex += self.speed
+
+        if self.spriteIndex > len(self.sprites) - 1 or self.inputs['space']:
+            self.sceneManager.LoadScene('mainMenu')
+
+    def Draw(self):        
+        self.surface.fill((0, 0, 0))
+        self.surface.blit(self.sprites[int(self.spriteIndex)], (0, 0))
+
 class MainMenu():
     def __init__(self, surface, inputs, sceneManager):   
         pygame.mixer.music.load('BGM/menu1.mp3')
@@ -30,10 +50,10 @@ class MainMenu():
         self.mainMenuCanvas = MainMenuCanvas(self.surface, self.inputs, self.sceneManager)
 
     def Update(self):
-        screen.fill((0, 0, 0))
         self.mainMenuCanvas.Update()
 
     def Draw(self):
+        self.surface.fill((0, 0, 0))
         self.mainMenuCanvas.DrawMenu()
 
 class Scene():
@@ -93,6 +113,7 @@ class Scene1(Scene):
     def Update(self):
         self.SceneUpdate()
 
+        self.gameManager.Update()
         self.pointHandler.Update()
         self.player.Update()
         self.hudCanvas.Update()
@@ -111,9 +132,6 @@ class Scene1(Scene):
         self.screen.blit(self.gameSurface, (320,0))
 
         self.hudCanvas.DrawHUD(screen)
-
-        pygame.display.update()
-
 
 class Scene2(Scene):
     def __init__(self, sceneManager):
@@ -188,19 +206,17 @@ class Scene3(Scene):
         self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'],self.gridHandler.valid, True)
         self.player.Update(self.screen, self.pointHandler, self.playMode)
 
-        pygame.display.update()
-
         if self.complete:
             #self.levelCompleteCanvas.Draw(screen, self.inputs['leftClick'])
             self.sceneManager.LoadScene('mainMenu')
 
 class Button(pygame.sprite.Sprite):
-    def __init__(self, pos, link):
+    def __init__(self, pos, link): 
         self.pos = pos
         self.link = link
         self.pressed = False
 
-        self.sprites = CutSpritesheet('Sprites/Objects/button.png', 64, 64)
+        self.sprites = CutSpritesheet('Sprites/Objects/button.png', (64, 64))
 
         self.image = self.sprites[0]
         
@@ -235,7 +251,9 @@ class SceneManager():
 
 inputs = {'space': False, 'rightClick': False, 'leftClick': False, 'escape': False, 'tab': False, 'one': False}
 
-sceneManager = SceneManager('mainMenu')
+sceneManager = SceneManager('splashScreen')
+
+splashScreen = SplashScreen(screen, inputs, sceneManager)
 
 mainMenu = MainMenu(screen, inputs, sceneManager)
 
@@ -243,18 +261,20 @@ scene1 = Scene1(sceneManager)
 scene2 = Scene2(sceneManager)
 scene3 = Scene3(sceneManager)
 
-scenes = {'mainMenu': mainMenu, 'scene1': scene1, 'scene2': scene2, 'scene3': scene3}
+scenes = {'splashScreen': splashScreen, 'mainMenu': mainMenu, 'scene1': scene1, 'scene2': scene2, 'scene3': scene3}
 
 async def main():
     while True:
         EventCheck(inputs)
         scenes[sceneManager.GetScene()].Update()
         scenes[sceneManager.GetScene()].Draw()
-        if sceneManager.GetScene() != 'mainMenu':
+        if sceneManager.GetScene() != 'mainMenu' and sceneManager.GetScene() != 'splashScreen':
             clock.tick(scenes[sceneManager.GetScene()].gameManager.clockTick)
         else:
             clock.tick(60)
+
         pygame.display.update()
+
         await asyncio.sleep(0)
 
 asyncio.run(main())

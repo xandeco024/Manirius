@@ -58,6 +58,8 @@ class GameManager():
         else:
             self.player.canMove = False
 
+        print(self.playMode)
+
     def TogglePause(self):
         pass
 

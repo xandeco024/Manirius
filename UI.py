@@ -124,25 +124,23 @@ class HUDCanvas():
 
         #Control
 
-
-
-        self.playButtonSprites = Utilities.CutSpritesheet('Sprites/UI/HUD/play btn.png', 64, 64)
+        self.playButtonSprites = Utilities.CutSpritesheet('Sprites/UI/HUD/play btn.png', (64, 64))
         self.playButton = UISpriteButton(self.playButtonSprites[0], (self.screenX / 2 - 32, self.screenY - 64), self.OnPlayButtonClicked, self.OnPlayButtonHover)
 
-        self.restartButtonSprites = Utilities.CutSpritesheet('Sprites/UI/HUD/restart btn.png', 64, 64)
+        self.restartButtonSprites = Utilities.CutSpritesheet('Sprites/UI/HUD/restart btn.png', (64, 64))
         self.restartButton = UISpriteButton(self.restartButtonSprites[0], (self.screenX / 2 + 32, self.screenY - 64), self.OnRestartButtonClicked, self.OnRestartButtonHover)
 
-        self.pauseButtonSprites = Utilities.CutSpritesheet('Sprites/UI/HUD/pause btn.png', 64, 64)
+        self.pauseButtonSprites = Utilities.CutSpritesheet('Sprites/UI/HUD/pause btn.png', (64, 64))
         self.pauseButton = UISpriteButton(self.pauseButtonSprites[0], (self.screenX / 2 - 96, self.screenY - 64), self.OnPauseButtonClicked, self.OnPauseButtonHover)
 
-        self.speedButtonSprites = Utilities.CutSpritesheet('Sprites/UI/HUD/speed btn.png', 64, 64)
+        self.speedButtonSprites = Utilities.CutSpritesheet('Sprites/UI/HUD/speed btn.png', (64, 64))
         self.speedUpButton = UISpriteButton(self.speedButtonSprites[2], (256, self.screenY - 64), self.OnSpeedUpClicked, self.OnSpeedUpHover)
         self.speedDownButton = UISpriteButton(self.speedButtonSprites[0], (128, self.screenY - 64), self.OnSpeedDownClicked, self.OnSpeedDownHover)
 
-        self.creatorButtonSprites = Utilities.CutSpritesheet('Sprites/UI/HUD/creator btn.png', 128, 128)
+        self.creatorButtonSprites = Utilities.CutSpritesheet('Sprites/UI/HUD/creator btn.png', (128, 128))
         self.creatorButton = UISpriteButton(self.creatorButtonSprites[1], (self.screenX - 4*64, self.screenY - 2*64), self.OnCreatorButtonClicked, self.OnCreatorButtonHover)
 
-        self.pointHudButtonSprites = Utilities.CutSpritesheet('Sprites/UI/HUD/point btn.png', 64, 64)
+        self.pointHudButtonSprites = Utilities.CutSpritesheet('Sprites/UI/HUD/point btn.png', (64, 64))
         self.pointHudButton = UISpriteButton(self.pointHudButtonSprites[0], (self.screenX - 7*64, self.screenY - 64), self.OnPointHudButtonClicked, self.OnPointHudButtonHover)
 
         self.hudPanel = UIImage(pygame.image.load('Sprites/UI/HUD/hud panel.png').convert_alpha(), (0, self.screenY - 128))
@@ -278,13 +276,13 @@ class MainMenuCanvas():
         self.logoSprite = pygame.image.load("Sprites/UI/logo.png").convert_alpha()
         self.logoImage = UIImage(self.logoSprite, (self.surfaceX / 2 - 260, 100))
 
-        self.startButtonSprites = Utilities.CutSpritesheet('Sprites/UI/start btn.png', 256, 128)
+        self.startButtonSprites = Utilities.CutSpritesheet('Sprites/UI/start btn.png', (256, 128))
         self.startButton = UISpriteButton(self.startButtonSprites[0], (self.surfaceX / 2 - 128, self.surfaceY / 2 - 50), self.OnStartButtonClick, self.OnStartButtonHover)
         
-        self.settingsButtonSprites = Utilities.CutSpritesheet('Sprites/UI/settings btn.png', 256, 128)
+        self.settingsButtonSprites = Utilities.CutSpritesheet('Sprites/UI/settings btn.png', (256, 128))
         self.settingsButton = UISpriteButton(self.settingsButtonSprites[0], (self.surfaceX / 2 - 128, self.surfaceY / 2 + 75), self.OnSettingsButtonClick, self.OnSettingsButtonHover)
         
-        self.quitButtonSprites = Utilities.CutSpritesheet('Sprites/UI/quit btn.png', 256, 128)
+        self.quitButtonSprites = Utilities.CutSpritesheet('Sprites/UI/quit btn.png', (256, 128))
         self.quitButton = UISpriteButton(self.quitButtonSprites[0], (self.surfaceX / 2 - 128, self.surfaceY / 2 + 200), self.OnQuitButtonClick, self.OnQuitButtonHover)
 
     def OnStartButtonHover(self):
@@ -382,3 +380,15 @@ class LevelCompleteCanvas():
         self.levelSelectorBtn.Update(screen, click)
 
         Utilities.DrawText('LEVEL COMPLETE!', verminVibes, 75, (255, 255, 255), screen, self.screenX / 2, self.screenY / 3)
+
+
+#region Splash
+class SplashScreenCanvas1():
+    pass
+
+class SplashScreenCanvas2():
+    pass
+
+class SplashScreenCanvas3():
+    pass
+#endregion

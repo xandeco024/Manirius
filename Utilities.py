@@ -1,16 +1,15 @@
-import pygame
-import sys
+import pygame, os, sys
 
-def CutSpritesheet(spritesheet_path, sprite_width, sprite_height):
+def CutSpritesheet(spriteSheetPath, spriteSize):
     # Carrega a spritesheet
-    spritesheet = pygame.image.load(spritesheet_path).convert_alpha()
+    spritesheet = pygame.image.load(spriteSheetPath).convert_alpha()
 
     # Obtém as dimensões da spritesheet
     sheet_width, sheet_height = spritesheet.get_size()
 
     # Calcula o número de colunas e linhas de sprites na spritesheet
-    columns = sheet_width // sprite_width
-    rows = sheet_height // sprite_height
+    columns = sheet_width // spriteSize[0]
+    rows = sheet_height // spriteSize[1]	
 
     # Cria uma lista para armazenar os sprites
     sprites = []
@@ -19,11 +18,11 @@ def CutSpritesheet(spritesheet_path, sprite_width, sprite_height):
     for row in range(rows):
         for column in range(columns):
             # Calcula a posição do sprite na spritesheet
-            x = column * sprite_width
-            y = row * sprite_height
+            x = column * spriteSize[0]
+            y = row * spriteSize[1]
 
             # Corta o sprite da spritesheet
-            sprite = spritesheet.subsurface(pygame.Rect(x, y, sprite_width, sprite_height))
+            sprite = spritesheet.subsurface(pygame.Rect(x, y, spriteSize[0], spriteSize[1]))
 
             # Adiciona o sprite à lista de sprites
             sprites.append(sprite)
@@ -104,3 +103,54 @@ def move(rect, movement, tiles):
             rect.top = tile.bottom #caso haja colisão na parte de cima, seta o jogador na posição da parte debaixo do tile que colidiu.
             #collisionTypes['top'] = True
     return rect#, collisionTypes
+
+def Animate(self, animation):
+        self.sprites = CutSpritesheet(self.animations[animation]['spritesheet'], 64, 64)
+
+        self.currentSprite += self.animations[animation] ['speed']
+
+        if self.currentSprite > self.animations[animation] ['frames'] - 1:
+            self.currentSprite = 0
+            done = True
+
+        else:
+            done = False
+
+        self.image = self.sprites[int(self.currentSprite)]
+        return done
+
+class Animator():
+    def __init__(self, animations):
+        self.animations = animations
+        self.sprites = None
+        self.speed = 1
+        self.spriteIndex = 0
+        self.done = False
+    
+    def GetAnimation(self):
+        return self.sprites[int(self.spriteIndex)], self.done
+
+    def Update(self):
+        self.spriteIndex += self.speed
+
+        if self.spriteIndex > len(self.sprites) - 1:
+            self.spriteIndex = 0
+            self.done = True
+
+        else:
+            self.done = False
+
+    def SetAnimation(self, animation):
+        self.sprites = CutSpritesheet(self.animations[animation]['spritesheet'], self.animations[animation]['size'])
+        self.speed = self.animations[animation]['speed']
+
+def LoadSprites(image_folder):
+    images = [img for img in os.listdir(image_folder) if img.endswith(".jpg")]
+    images = sorted(images, key=lambda img: int(img.split('_')[1].split('.')[0]))
+
+    sprites = []
+    for image in images:
+        sprite = pygame.image.load(os.path.join(image_folder, image))
+        sprites.append(sprite)
+
+    return sprites
