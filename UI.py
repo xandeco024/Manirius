@@ -111,11 +111,11 @@ class UI():
         self.hud.Update()
 
 class HUDCanvas():
-    def __init__(self, gameManager):
-        self.gameManager = gameManager
+    def __init__(self):
+        self.gameManager = None
         self.startTimer = 100
 
-        self.screenX, self.screenY = gameManager.screen.get_size()
+        self.screenX, self.screenY = 1280, 720
         self.hudSurface = pygame.Surface((self.screenX, self.screenY))
         self.hudSurface.set_colorkey((0, 255, 0))
 
@@ -144,23 +144,6 @@ class HUDCanvas():
         self.pointHudButton = UISpriteButton(self.pointHudButtonSprites[0], (self.screenX - 7*64, self.screenY - 64), self.OnPointHudButtonClicked, self.OnPointHudButtonHover)
 
         self.hudPanel = UIImage(pygame.image.load('Sprites/UI/HUD/hud panel.png').convert_alpha(), (0, self.screenY - 128))
-
-    def StartTimer(self):
-        self.startTimer = time.Time()
-
-    def DrawTime(self):
-        elapsedTime = time.Time() - self.startTimer
-        Utilities.DrawText(str(elapsedTime), kenneyPixel, 30, (255, 255, 255), self.ui.screen, 100, 100)
-
-    def DrawPointsPlaced(self):
-        #DrawText(str(self.gameManager.pointHandler.pointsPlaced), kenneyPixel, 30, (255, 255, 255), surface, 50, 50)
-        pass
-
-    def DrawSpeed(self):
-        pass
-
-    def SceneControl(self):
-        pass
 
     def DrawHUD(self, surface):
         self.hudSurface.fill((0, 255, 0))
@@ -199,13 +182,13 @@ class HUDCanvas():
             self.speedDownButton.sprite = self.speedButtonSprites[0]
             self.speedUpButton.sprite = self.speedButtonSprites[3]
 
-        self.playButton.Update(self.gameManager.inputs['leftClick'])
-        self.speedUpButton.Update(self.gameManager.inputs['leftClick'])
-        self.speedDownButton.Update(self.gameManager.inputs['leftClick'])
-        self.pauseButton.Update(self.gameManager.inputs['leftClick'])
-        self.restartButton.Update(self.gameManager.inputs['leftClick'])
-        self.pointHudButton.Update(self.gameManager.inputs['leftClick'])
-        self.creatorButton.Update(self.gameManager.inputs['leftClick'])
+        self.playButton.Update(self.gameManager.events['leftClick'])
+        self.speedUpButton.Update(self.gameManager.events['leftClick'])
+        self.speedDownButton.Update(self.gameManager.events['leftClick'])
+        self.pauseButton.Update(self.gameManager.events['leftClick'])
+        self.restartButton.Update(self.gameManager.events['leftClick'])
+        self.pointHudButton.Update(self.gameManager.events['leftClick'])
+        self.creatorButton.Update(self.gameManager.events['leftClick'])
 
     def OnSpeedUpHover(self):
         #self.hoverSFX.play()

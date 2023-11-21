@@ -1,17 +1,22 @@
 import pygame, Utilities
 
 class Player(pygame.sprite.Sprite): #Classe do player
-    def __init__(self, startPos, pointHandler):
+    def __init__(self, startPos):
 
         super().__init__()
 
-        self.pointHandler = pointHandler
+        self.gameManager = None
+        self.pointHandler = None
+
         self.startPos = startPos
+
         self.playerSprite = "Sprites/ROBB9/ROBB9.png"
         self.image = pygame.image.load(self.playerSprite).convert_alpha()
+
         self.rect = self.image.get_rect()
         self.rect.x = self.startPos[0]
         self.rect.y = self.startPos[1]
+
         self.playerSpeed = 4
         self.canMove = False
 
@@ -87,10 +92,9 @@ class Player(pygame.sprite.Sprite): #Classe do player
         self.animator.Update()
         #self.HandleAnimations()
 
-        self.Rotate(self.direction)
-
     def Draw(self, surface):
         self.image, self.done = self.animator.GetAnimation()
+        self.Rotate(self.direction)
         surface.blit(self.image, (self.rect.x, self.rect.y))
 
     def Rotate(self, dir):

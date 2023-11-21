@@ -56,45 +56,67 @@ class MainMenu():
         self.surface.fill((0, 0, 0))
         self.mainMenuCanvas.DrawMenu()
 
-class Scene():
-    def __init__(self, playerStartPos, winPos, mapArray, sceneManager):
 
-        self.gameManager = GameManager(screen, clock, inputs)
-
+class Scene(): #CENA BASE PARA CENAS JOGAVEIES E NAO JOGAVEIS.
+    def __init__(self, surface, clock,  events, sceneManager):
+        self.surface = surface
+        self.clock = clock
+        self.events = events
         self.sceneManager = sceneManager
 
-        self.screen = self.gameManager.screen
-        self.clock = self.gameManager.clock
+    def Update(self):
+        pass
 
+class PlayableScene(Scene): #CENA JOGAVEL
+    def __init__(self, playerStartPos, winPos, nextLevel, mapArray, surface, clock, events, sceneManager):
+
+        super().__init__(surface, clock, events, sceneManager)
+
+        #Scene basics
         self.playerStartPos = playerStartPos
         self.winPos = winPos
-
+        self.nextLevel = nextLevel
         self.mapArray = mapArray
 
         self.complete = False
 
-        self.background = Background("Sprites/UI/background.jpg", [-0.5, -0.5])
+        #game scene
+        self.gameSurface = pygame.Surface((640, 640)).convert_alpha()
 
-        self.hudCanvas = HUDCanvas(self.gameManager)
-        self.pointHandler = PointHandler(self.mapArray, self.gameManager)
-        self.player = Player(self.playerStartPos, self.pointHandler)
+        #Scene objects
 
         self.level = Tilemap.Level(mapArray, "Sprites/Tileset/tileset.png")
+        self.background = Background("Sprites/UI/background.jpg", [-0.5, -0.5])
+        self.hudCanvas = HUDCanvas()
+        self.pointHandler = PointHandler(self.mapArray)
+        self.player = Player(self.playerStartPos)
 
-        self.gameSurface = pygame.Surface((640, 640)).convert_alpha()
-        self.gameManager.SetScene(self)
+        self.gameManager = GameManager(self)
 
-    def CheckProgress(self):
+    def HandleProgess(self):
         if self.player.rect.x == self.winPos[0] and self.player.rect.y == self.winPos[1]:
             self.complete = True
 
-    def SceneUpdate(self):
-        self.CheckProgress()
+        if self.complete and events['space']: #Implementar logica pra passar de fase
+            self.sceneManager.LoadScene(self.nextLevel)
 
-class Scene1(Scene):
-    def __init__(self, sceneManager):
+    def Update(self):
+        super().Update()
+        self.HandleProgess()
+
+        self.gameManager.Update()
+        self.pointHandler.Update()
+        self.player.Update()
+        self.hudCanvas.Update()
+
+class Level1(PlayableScene):
+    def __init__(self, surface, clock, events, sceneManager):
+
+        #Level 1 basics
         playerStartPos = (2*64, 8*64)
         winPos = (8*64, 8*64)
+        nextLevel = 'level2'
+
         mapArray = [
             [31,22,22,35,25,22,35,22,33,12],
             [13,42,42,42,42,42,42,42,11,12],
@@ -108,18 +130,12 @@ class Scene1(Scene):
             [51, 2, 5, 2,62, 2, 2, 2, 2,53]
         ]
 
-        super().__init__(playerStartPos, winPos, mapArray, sceneManager)
+        #Particularidades do lvl
+
+        super().__init__(playerStartPos, winPos, nextLevel, mapArray, surface, clock, events, sceneManager)
 
     def Update(self):
-        self.SceneUpdate()
-
-        self.gameManager.Update()
-        self.pointHandler.Update()
-        self.player.Update()
-        self.hudCanvas.Update()
-
-        if self.complete:
-            self.sceneManager.LoadScene('scene2')
+        super().Update()
 
     def Draw(self):
         screen.fill((0, 0, 0))
@@ -129,14 +145,18 @@ class Scene1(Scene):
         self.level.Draw(self.gameSurface)
         self.pointHandler.Draw(self.gameSurface)
         self.player.Draw(self.gameSurface)
-        self.screen.blit(self.gameSurface, (320,0))
+        self.surface.blit(self.gameSurface, (320,0))
 
         self.hudCanvas.DrawHUD(screen)
 
-class Scene2(Scene):
-    def __init__(self, sceneManager):
-        winPos = (7*64, 1*64)
+class Level2(PlayableScene):
+    def __init__(self, surface, clock, events, sceneManager):
+
+        #level 2 basics
         playerStartPos = (2*64, 8*64)
+        winPos = (7*64, 1*64)
+        nextLevel = 'level3'
+
         mapArray = [
             [31,22,22,22,22,22,22,32,22,33],
             [13,42,42,42,42,71,42,42,42,11],
@@ -150,31 +170,33 @@ class Scene2(Scene):
             [51, 2, 2, 2, 2,53,12,12,12,12]
         ]
 
-        super().__init__(playerStartPos, winPos, mapArray, sceneManager)
+        #Particularidades do lvl
 
-        self.button1 = Button((2*64, 1*64), 'batata')
+        super().__init__(playerStartPos, winPos, nextLevel, mapArray, surface, clock, events, sceneManager)
 
     def Update(self):
+        super().Update()
+
+    def Draw(self):
         screen.fill((0, 0, 0))
 
-        self.SceneUpdate()
+        self.background.DrawBackground(screen)
 
-        self.level.DrawLevel()
+        self.level.Draw(self.gameSurface)
+        self.pointHandler.Draw(self.gameSurface)
+        self.player.Draw(self.gameSurface)
+        self.surface.blit(self.gameSurface, (320,0))
 
-        self.button1.Draw(screen)
-        self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'],self.gridHandler.valid, True)
-        self.player.Update(self.screen, self.pointHandler, self.playMode)
+        self.hudCanvas.DrawHUD(screen)
 
-        pygame.display.update()
+class Level3(PlayableScene):
+    def __init__(self, surface, clock, events, sceneManager):
 
-        if self.complete:
-            #self.levelCompleteCanvas.Draw(screen, self.inputs['leftClick'])
-            self.sceneManager.LoadScene('scene3')
-
-class Scene3(Scene):
-    def __init__(self, sceneManager):
-        playerStartPos = (64, 128)
+        #level 3 basics
+        playerStartPos = (64, 12)
         winPos = (8*64, 8*64)
+        nextLevel = 'level4'
+
         mapArray = [
             [31,22,22,22,22,22,22,22,22,33],
             [13,42,42,42,42,42,42,42,42,11],
@@ -188,27 +210,104 @@ class Scene3(Scene):
             [51,52,52,53,12,12,12,12,12,12]
         ]
 
-        super().__init__(playerStartPos, winPos, mapArray, sceneManager)
+        #Particularidades do lvl
+
+        super().__init__(playerStartPos, winPos, nextLevel, mapArray, surface, clock, events, sceneManager)
 
     def Update(self):
+        super().Update()
+
+    def Draw(self):
         screen.fill((0, 0, 0))
 
-        self.SceneUpdate()
+        self.background.DrawBackground(screen)
 
-        self.level.DrawLevel()
+        self.level.Draw(self.gameSurface)
+        self.pointHandler.Draw(self.gameSurface)
+        self.player.Draw(self.gameSurface)
+        self.surface.blit(self.gameSurface, (320,0))
 
-        if self.itemSelected:
-            if self.pointHandler.pointList:
-                self.gridHandler.Update(self.screen, self.pointHandler.pointList[len(self.pointHandler.pointList) - 1].rect)
-            else:
-                self.gridHandler.Update(self.screen, self.player.rect)
+        self.hudCanvas.DrawHUD(screen)
 
-        self.pointHandler.Update(self.screen, self.player.rect, self.inputs['leftClick'], self.inputs['rightClick'],self.gridHandler.valid, True)
-        self.player.Update(self.screen, self.pointHandler, self.playMode)
+class Level4(PlayableScene):
+    def __init__(self, surface, clock, events, sceneManager):
 
-        if self.complete:
-            #self.levelCompleteCanvas.Draw(screen, self.inputs['leftClick'])
-            self.sceneManager.LoadScene('mainMenu')
+        #level 4 basics
+        playerStartPos = (64, 512)
+        winPos = (8*64, 8*64)
+        nextLevel = 'level4'
+
+        mapArray = [
+            [31,22,22,22,22,22,22,22,22,33],
+            [13,20,42,42,42,30,42,30,42,11],
+            [13,42,42,42,42,30,42,30,42,43],
+            [13,42,42,42,42,30,42,30,42,11],
+            [13,42,42,42,75,95,95,95,95,11],
+            [13,42,42,10,71,10,42,42,42,11],
+            [13,42,42,42,71,42,42,42,42,11],
+            [13,42,42,42,71,42,42,42,42,11],
+            [13,42,42,42,71,42,42,42,10,11],
+            [51,2,2,2,2,2,2,2,2,53]
+        ]
+
+        #Particularidades do lvl
+
+        super().__init__(playerStartPos, winPos, nextLevel, mapArray, surface, clock, events, sceneManager)
+
+    def Update(self):
+        super().Update()
+
+    def Draw(self):
+        screen.fill((0, 0, 0))
+
+        self.background.DrawBackground(screen)
+
+        self.level.Draw(self.gameSurface)
+        self.pointHandler.Draw(self.gameSurface)
+        self.player.Draw(self.gameSurface)
+        self.surface.blit(self.gameSurface, (320,0))
+
+        self.hudCanvas.DrawHUD(screen)
+
+class Level5(PlayableScene):
+    def __init__(self, surface, clock, events, sceneManager):
+
+        #level 5 basics
+        playerStartPos = (64, 512)
+        winPos = (8*64, 8*64)
+        nextLevel = 'mainMenu'
+
+        mapArray = [
+            [31,22,22,22,22,22,22,22,22,33],
+            [13,42,42,42,42,42,42,42,42,11],
+            [13,42,42,42,42,42,42,42,42,11],
+            [13,42,42,42,42,42,42,42,42,11],
+            [13,42,42,42,42,42,42,42,42,11],
+            [13,42,42,42,42,42,42,42,42,11],
+            [13,42,42,42,42,42,42,42,42,11],
+            [13,42,42,42,42,42,42,42,42,11],
+            [13,42,42,42,42,42,42,42,42,11],
+            [51,2,2,2,2,2,2,2,2,53]
+        ]
+
+        #Particularidades do lvl
+
+        super().__init__(playerStartPos, winPos, nextLevel, mapArray, surface, clock, events, sceneManager)
+
+    def Update(self):
+        super().Update()
+
+    def Draw(self):
+        screen.fill((0, 0, 0))
+
+        self.background.DrawBackground(screen)
+
+        self.level.Draw(self.gameSurface)
+        self.pointHandler.Draw(self.gameSurface)
+        self.player.Draw(self.gameSurface)
+        self.surface.blit(self.gameSurface, (320,0))
+
+        self.hudCanvas.DrawHUD(screen)
 
 class Button(pygame.sprite.Sprite):
     def __init__(self, pos, link): 
@@ -249,23 +348,29 @@ class SceneManager():
 
 #region Heliópolis
 
-inputs = {'space': False, 'rightClick': False, 'leftClick': False, 'escape': False, 'tab': False, 'one': False}
+events = {'space': False, 'rightClick': False, 'leftClick': False, 'escape': False, 'tab': False, 'one': False}
 
-sceneManager = SceneManager('splashScreen')
+sceneManager = SceneManager('level1')
 
-splashScreen = SplashScreen(screen, inputs, sceneManager)
+splashScreen = SplashScreen(screen, events, sceneManager)
 
-mainMenu = MainMenu(screen, inputs, sceneManager)
+mainMenu = MainMenu(screen, events, sceneManager)
 
-scene1 = Scene1(sceneManager)
-scene2 = Scene2(sceneManager)
-scene3 = Scene3(sceneManager)
+level1 = Level1(screen, clock, events, sceneManager)
+level2 = Level2(screen, clock, events, sceneManager)
+level3 = Level3(screen, clock, events, sceneManager)
+level4 = Level4(screen, clock, events, sceneManager)
+level5 = Level5(screen, clock, events, sceneManager)
 
-scenes = {'splashScreen': splashScreen, 'mainMenu': mainMenu, 'scene1': scene1, 'scene2': scene2, 'scene3': scene3}
+#scene1 = Scene1(sceneManager)
+#scene2 = Scene2(sceneManager)
+#scene3 = Scene3(sceneManager)
+
+scenes = {'splashScreen': splashScreen, 'mainMenu': mainMenu, 'level1': level1, 'level2': level2, 'level3': level3, 'level4': level4, 'level5': level5}
 
 async def main():
     while True:
-        EventCheck(inputs)
+        EventCheck(events)
         scenes[sceneManager.GetScene()].Update()
         scenes[sceneManager.GetScene()].Draw()
         if sceneManager.GetScene() != 'mainMenu' and sceneManager.GetScene() != 'splashScreen':

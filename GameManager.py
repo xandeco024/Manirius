@@ -1,10 +1,7 @@
 import pygame
 
 class GameManager():
-    def __init__(self, screen, clock, inputs):
-        self.inputs = inputs
-        self.screen = screen
-        self.clock = clock
+    def __init__(self, scene):
 
         self.pauseGame = False
 
@@ -17,14 +14,23 @@ class GameManager():
 
         self.speed = 1
 
-    def SetScene(self, scene):
+        #Scene
         self.scene = scene
+        self.clock = scene.clock
+        self.events = scene.events
+        self.surface = scene.surface
 
-        self.player = self.scene.player
-        self.mapArray = self.scene.mapArray
-        self.pointHandler = self.scene.pointHandler
-        self.winPos = self.scene.winPos
-        self.startPos = self.scene.playerStartPos
+        self.player = scene.player
+        self.pointHandler = scene.pointHandler
+        self.hud = scene.hudCanvas
+
+        #setando as coisa
+        self.pointHandler.gameManager = self
+
+        self.player.gameManager = self
+        self.player.pointHandler = self.pointHandler
+
+        self.hud.gameManager = self
 
     def SimulationSpeedUp(self):
         if self.speed < 3:
@@ -39,10 +45,10 @@ class GameManager():
             self.clock.tick(self.clockTick)
 
     def Update(self):
-        if self.inputs['space']:
+        if self.events['space']:
             self.TogglePlayMode()
 
-        if self.inputs['one']:
+        if self.events['one']:
             if not self.playMode:
                 self.pointSelected = not self.pointSelected
 
@@ -58,7 +64,6 @@ class GameManager():
         else:
             self.player.canMove = False
 
-        print(self.playMode)
 
     def TogglePause(self):
         pass
@@ -67,7 +72,8 @@ class GameManager():
         self.playMode = False
         self.pointSelected = False
         self.pointHandler.pointList.clear()
-        self.player.ReturnToStart()
+        self.player.rect.x = self.player.startPos[0]
+        self.player.rect.y = self.player.startPos[1]
 
     def TogglePlayMode(self):
         self.playMode = not self.playMode

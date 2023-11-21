@@ -1,9 +1,9 @@
 import pygame, Utilities
 
 class PointHandler():
-    def __init__(self, mapArray, gameManager):
+    def __init__(self, mapArray):
         
-        self.gameManager = gameManager
+        self.gameManager = None
         self.pointList = []
 
         #Grid Handler
@@ -130,10 +130,10 @@ class PointHandler():
             self.TestPossibleTilePos(self.currentObjectRect) 
             self.valid = self.ValidateTilePos(self.CalcMouseTilePos(), self.possibleTilesPos)
 
-            if  self.gameManager.inputs['leftClick'] and self.valid: 
+            if  self.gameManager.events['leftClick'] and self.valid: 
                 self.AddPoint(self.CalcMouseTilePos())
 
-            if self.gameManager.inputs['rightClick'] and self.pointList:
+            if self.gameManager.events['rightClick'] and self.pointList:
                 self.DeletePoint(len(self.pointList) - 1)
         
 class Object(pygame.sprite.Sprite):
