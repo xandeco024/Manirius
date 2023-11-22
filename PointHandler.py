@@ -1,4 +1,4 @@
-import pygame, Utilities
+import pygame, Utilities, Objects
 
 class PointHandler():
     def __init__(self, mapArray):
@@ -92,7 +92,7 @@ class PointHandler():
             surface.blit(tileSurface, (row, column))
 
     def AddPoint(self, pos):
-        point = PointObj(pos)
+        point = Objects.PointObj((64,64), pos, 0)
         self.pointList.append(point)
         self.gameManager.pointsPlaced += 1
 
@@ -135,20 +135,3 @@ class PointHandler():
 
             if self.gameManager.events['rightClick'] and self.pointList:
                 self.DeletePoint(len(self.pointList) - 1)
-        
-class Object(pygame.sprite.Sprite):
-    def __init__(self, validTile, cost):
-        self.validTile = validTile
-        self.cost = cost
-
-        super().__init__()
-
-class PointObj(Object):
-    def __init__(self, pos):
-        validTile = 42
-        cost = 1
-
-        super().__init__(validTile, cost)
-
-        self.image = pygame.image.load('Sprites/Objects/point.png').convert_alpha()
-        self.rect = self.image.get_rect(topleft = pos)

@@ -1,4 +1,4 @@
-import pygame, time, sys, asyncio
+import pygame, time, sys, asyncio, Objects
 
 from ROBB9 import Player
 from Utilities import *
@@ -132,6 +132,11 @@ class Level1(PlayableScene):
 
         #Particularidades do lvl
 
+        self.decoTable = Objects.DecorativeObject('Sprites/Objects/table.png', (128, 64), (128, 64), -180)
+        self.decoPanel = Objects.DecorativeObject('Sprites/Objects/panel.png', (64, 64), (64, 0), 90)
+        self.decoNiche = Objects.DecorativeObject('Sprites/Objects/nicho em ingles.png', (64, 64), (256, 0), 0)
+        self.decoPc = Objects.DecorativeObject('Sprites/Objects/pc.png', (64, 64), (512-128, 0), 0)
+
         super().__init__(playerStartPos, winPos, nextLevel, mapArray, surface, clock, events, sceneManager)
 
     def Update(self):
@@ -144,7 +149,15 @@ class Level1(PlayableScene):
 
         self.level.Draw(self.gameSurface)
         self.pointHandler.Draw(self.gameSurface)
+
+        '''self.decoTable.Draw(self.gameSurface)
+        self.decoPanel.Draw(self.gameSurface)
+        self.decoNiche.Draw(self.gameSurface)
+        self.decoPc.Draw(self.gameSurface)'''
+
+
         self.player.Draw(self.gameSurface)
+
         self.surface.blit(self.gameSurface, (320,0))
 
         self.hudCanvas.DrawHUD(screen)
@@ -345,12 +358,11 @@ class SceneManager():
     
     def GetScene(self):
         return self.currentScene
-
 #region Heliópolis
 
 events = {'space': False, 'rightClick': False, 'leftClick': False, 'escape': False, 'tab': False, 'one': False}
 
-sceneManager = SceneManager('level1')
+sceneManager = SceneManager('splashScreen')
 
 splashScreen = SplashScreen(screen, events, sceneManager)
 
