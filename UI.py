@@ -273,7 +273,7 @@ class MainMenuCanvas():
 
     def OnStartButtonClick(self):
         self.clickSFX.play()
-        self.sceneManager.LoadScene('scene1')
+        self.sceneManager.LoadScene('level1')
 
     def OnSettingsButtonHover(self):
         pass

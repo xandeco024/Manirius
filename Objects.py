@@ -12,8 +12,9 @@ class Object(pygame.sprite.Sprite):
         super().__init__()
 
 class PointObj(Object):
-    def __init__(self, spritesheetPath, size, pos, rotation):
-        super().__init__(spritesheetPath, size, pos, rotation)
+    def __init__(self, pos):
+        
+        super().__init__('Sprites/Objects/point.png', (64,64), pos, 0)
 
     #banana
 

@@ -92,7 +92,7 @@ class PointHandler():
             surface.blit(tileSurface, (row, column))
 
     def AddPoint(self, pos):
-        point = Objects.PointObj((64,64), pos, 0)
+        point = Objects.PointObj(pos)
         self.pointList.append(point)
         self.gameManager.pointsPlaced += 1
 
