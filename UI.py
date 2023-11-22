@@ -1,7 +1,7 @@
 import pygame, time, Utilities, sys
 
-verminVibes = "Fonts/Vermin Vibes 1989.ttf"
-kenneyPixel = "Fonts/Kenney Pixel.ttf"
+verminVibes = "Assets/Fonts/Vermin Vibes 1989.ttf"
+kenneyPixel = "Assets/Fonts/Kenney Pixel.ttf"
 
 def DrawText(text, font, fontSize, color, surface, pos):
     fontObj = pygame.font.Font(font, fontSize)
@@ -119,38 +119,46 @@ class HUDCanvas():
         self.hudSurface = pygame.Surface((self.screenX, self.screenY))
         self.hudSurface.set_colorkey((0, 255, 0))
 
-        self.hoverSFX = pygame.mixer.Sound('SFX/UI/select.ogg')
-        self.clickSFX = pygame.mixer.Sound('SFX/UI/click.ogg')
+        self.hoverSFX = pygame.mixer.Sound('Assets/SFX/UI/SFX-Select.ogg')
+        self.clickSFX = pygame.mixer.Sound('Assets/SFX/UI/SFX-Click.ogg')
+        self.editModeEnterSfx = pygame.mixer.Sound('Assets/SFX/UI/SFX-EditModeEnter.ogg')
+        #self.editModeExitSfx = pygame.mixer.Sound('Assets/SFX/UI/SFX-EditModeExit.ogg')
+        self.playModeEnterSfx = pygame.mixer.Sound('Assets/SFX/UI/SFX-PlayModeEnter.ogg')
+        #self.playModeExitSfx = pygame.mixer.Sound('Assets/SFX/UI/SFX-PlayModeExit.ogg')
+        self.retrySfx = pygame.mixer.Sound('Assets/SFX/UI/SFX-Retry.ogg')
+        self.levelCompleteSfx = pygame.mixer.Sound('Assets/SFX/UI/SFX-LevelComplete.ogg')
 
         #Control
 
-        self.playButtonSprites = Utilities.CutSpritesheet('Sprites/UI/HUD/play btn.png', (64, 64))
-        self.playButton = UISpriteButton(self.playButtonSprites[0], (self.screenX / 2 - 32, self.screenY - 64), self.OnPlayButtonClicked, self.OnPlayButtonHover)
+        self.playButtonSprites = Utilities.CutSpritesheet('Assets/Sprites/UI/HUD/play btn.png', (64, 64))
+        self.playButton = UISpriteButton(self.playButtonSprites[0], (self.screenX / 2 - 64, self.screenY - 64), self.OnPlayButtonClicked, self.OnPlayButtonHover)
 
-        self.restartButtonSprites = Utilities.CutSpritesheet('Sprites/UI/HUD/restart btn.png', (64, 64))
-        self.restartButton = UISpriteButton(self.restartButtonSprites[0], (self.screenX / 2 + 32, self.screenY - 64), self.OnRestartButtonClicked, self.OnRestartButtonHover)
+        self.restartButtonSprites = Utilities.CutSpritesheet('Assets/Sprites/UI/HUD/restart btn.png', (64, 64))
+        self.restartButton = UISpriteButton(self.restartButtonSprites[0], (self.screenX / 2, self.screenY - 64), self.OnRestartButtonClicked, self.OnRestartButtonHover)
 
-        self.pauseButtonSprites = Utilities.CutSpritesheet('Sprites/UI/HUD/pause btn.png', (64, 64))
-        self.pauseButton = UISpriteButton(self.pauseButtonSprites[0], (self.screenX / 2 - 96, self.screenY - 64), self.OnPauseButtonClicked, self.OnPauseButtonHover)
+        #self.pauseButtonSprites = Utilities.CutSpritesheet('Assets/Sprites/UI/HUD/pause btn.png', (64, 64))
+        #self.pauseButton = UISpriteButton(self.pauseButtonSprites[0], (self.screenX / 2 - 96, self.screenY - 64), self.OnPauseButtonClicked, self.OnPauseButtonHover)
 
-        self.speedButtonSprites = Utilities.CutSpritesheet('Sprites/UI/HUD/speed btn.png', (64, 64))
+        self.speedButtonSprites = Utilities.CutSpritesheet('Assets/Sprites/UI/HUD/speed btn.png', (64, 64))
         self.speedUpButton = UISpriteButton(self.speedButtonSprites[2], (256, self.screenY - 64), self.OnSpeedUpClicked, self.OnSpeedUpHover)
         self.speedDownButton = UISpriteButton(self.speedButtonSprites[0], (128, self.screenY - 64), self.OnSpeedDownClicked, self.OnSpeedDownHover)
 
-        self.creatorButtonSprites = Utilities.CutSpritesheet('Sprites/UI/HUD/creator btn.png', (128, 128))
+        self.creatorButtonSprites = Utilities.CutSpritesheet('Assets/Sprites/UI/HUD/creator btn.png', (128, 128))
         self.creatorButton = UISpriteButton(self.creatorButtonSprites[1], (self.screenX - 4*64, self.screenY - 2*64), self.OnCreatorButtonClicked, self.OnCreatorButtonHover)
 
-        self.pointHudButtonSprites = Utilities.CutSpritesheet('Sprites/UI/HUD/point btn.png', (64, 64))
+        self.pointHudButtonSprites = Utilities.CutSpritesheet('Assets/Sprites/UI/HUD/point btn.png', (64, 64))
         self.pointHudButton = UISpriteButton(self.pointHudButtonSprites[0], (self.screenX - 7*64, self.screenY - 64), self.OnPointHudButtonClicked, self.OnPointHudButtonHover)
 
-        self.hudPanel = UIImage(pygame.image.load('Sprites/UI/HUD/hud panel.png').convert_alpha(), (0, self.screenY - 128))
+        self.pausePanel = UIImage(pygame.image.load('Assets/Sprites/UI/HUD/pause panel.png').convert_alpha(), (0, 0))
+
+        self.hudPanel = UIImage(pygame.image.load('Assets/Sprites/UI/HUD/hud panel.png').convert_alpha(), (0, self.screenY - 128))
 
     def DrawHUD(self, surface):
         self.hudSurface.fill((0, 255, 0))
 
         self.hudPanel.DrawImage(self.hudSurface)
         self.playButton.DrawButton(self.hudSurface)
-        self.pauseButton.DrawButton(self.hudSurface)
+        #self.pauseButton.DrawButton(self.hudSurface)
         self.restartButton.DrawButton(self.hudSurface)
 
 
@@ -162,6 +170,11 @@ class HUDCanvas():
 
         DrawText(str(self.gameManager.speed) + 'x', kenneyPixel, 64, (255, 255, 255), self.hudSurface, (224, self.screenY - 32))
 
+        DrawText(str(self.gameManager.runTimes), kenneyPixel, 64, (255, 255, 255), self.hudSurface, (self.screenX / 2 - 256 + 32, self.screenY - 32))
+
+        #if self.gameManager.pauseGame:
+        #    self.pausePanel.DrawImage(self.hudSurface)
+
         surface.blit(self.hudSurface, (0, 0))
 
     def Update(self):
@@ -169,6 +182,12 @@ class HUDCanvas():
             self.playButton.sprite = self.playButtonSprites[1]
         else:
             self.playButton.sprite = self.playButtonSprites[0]
+
+        #if self.gameManager.pauseGame:
+        #    self.pauseButton.sprite = self.pauseButtonSprites[1]
+
+        #else:
+        #    self.pauseButton.sprite = self.pauseButtonSprites[0]
 
         if self.gameManager.speed == 1:
             self.speedDownButton.sprite = self.speedButtonSprites[1]
@@ -185,7 +204,7 @@ class HUDCanvas():
         self.playButton.Update(self.gameManager.events['leftClick'])
         self.speedUpButton.Update(self.gameManager.events['leftClick'])
         self.speedDownButton.Update(self.gameManager.events['leftClick'])
-        self.pauseButton.Update(self.gameManager.events['leftClick'])
+        #self.pauseButton.Update(self.gameManager.events['leftClick'])
         self.restartButton.Update(self.gameManager.events['leftClick'])
         self.pointHudButton.Update(self.gameManager.events['leftClick'])
         self.creatorButton.Update(self.gameManager.events['leftClick'])
@@ -209,7 +228,7 @@ class HUDCanvas():
         pass
 
     def OnPauseButtonClicked(self):
-        pass
+        self.gameManager.TogglePauseGame()
 
     def OnPlayButtonHover(self):
         #self.hoverSFX.play()
@@ -217,6 +236,7 @@ class HUDCanvas():
 
     def OnPlayButtonClicked(self):
         self.gameManager.TogglePlayMode()
+        self.playModeEnterSfx.play()
 
     def OnRestartButtonHover(self):
         #self.hoverSFX.play()
@@ -224,6 +244,7 @@ class HUDCanvas():
 
     def OnRestartButtonClicked(self):
         self.gameManager.RestartLevel()
+        self.retrySfx.play()
 
     def OnCreatorButtonHover(self):
         #self.hoverSFX.play()
@@ -238,12 +259,13 @@ class HUDCanvas():
 
     def OnPointHudButtonClicked(self):
         self.gameManager.TogglePointSelected()
+        self.editModeEnterSfx.play()
 
 class MainMenuCanvas():
     def __init__(self, surface, inputs, sceneManager):
 
-        self.selectSFX = pygame.mixer.Sound('SFX/UI/select.ogg')
-        self.clickSFX = pygame.mixer.Sound('SFX/UI/click.ogg')
+        self.selectSFX = pygame.mixer.Sound('Assets/SFX/UI/SFX-Select.ogg')
+        self.clickSFX = pygame.mixer.Sound('Assets/SFX/UI/SFX-Click.ogg')
 
         self.surface = surface
         self.surfaceX, self.surfaceY = surface.get_size()
@@ -254,18 +276,18 @@ class MainMenuCanvas():
         self.sceneManager = sceneManager
         self.inputs = inputs
 
-        self.background = Background("Sprites/UI/background.jpg", [-1, -1])
+        self.background = Background("Assets/Sprites/UI/background.jpg", [-1, -1])
 
-        self.logoSprite = pygame.image.load("Sprites/UI/logo.png").convert_alpha()
+        self.logoSprite = pygame.image.load("Assets/Sprites/UI/logo.png").convert_alpha()
         self.logoImage = UIImage(self.logoSprite, (self.surfaceX / 2 - 260, 100))
 
-        self.startButtonSprites = Utilities.CutSpritesheet('Sprites/UI/start btn.png', (256, 128))
+        self.startButtonSprites = Utilities.CutSpritesheet('Assets/Sprites/UI/start btn.png', (256, 128))
         self.startButton = UISpriteButton(self.startButtonSprites[0], (self.surfaceX / 2 - 128, self.surfaceY / 2 - 50), self.OnStartButtonClick, self.OnStartButtonHover)
         
-        self.settingsButtonSprites = Utilities.CutSpritesheet('Sprites/UI/settings btn.png', (256, 128))
+        self.settingsButtonSprites = Utilities.CutSpritesheet('Assets/Sprites/UI/settings btn.png', (256, 128))
         self.settingsButton = UISpriteButton(self.settingsButtonSprites[0], (self.surfaceX / 2 - 128, self.surfaceY / 2 + 75), self.OnSettingsButtonClick, self.OnSettingsButtonHover)
         
-        self.quitButtonSprites = Utilities.CutSpritesheet('Sprites/UI/quit btn.png', (256, 128))
+        self.quitButtonSprites = Utilities.CutSpritesheet('Assets/Sprites/UI/quit btn.png', (256, 128))
         self.quitButton = UISpriteButton(self.quitButtonSprites[0], (self.surfaceX / 2 - 128, self.surfaceY / 2 + 200), self.OnQuitButtonClick, self.OnQuitButtonHover)
 
     def OnStartButtonHover(self):
@@ -343,27 +365,54 @@ class Background():
                 surface.blit(self.sprite, ((x * bgX) + self.offset[0], (y * bgY) + self.offset[1]))
 
 class LevelCompleteCanvas():
-    def __init__(self, screen):
-        self.screenX, self.screenY = screen.get_size()
-        self.levelCompletePanel = pygame.Surface((self.screenX, self.screenY))
+    def __init__(self):
+        self.surfaceX, self.surfaceY = 1280, 720
+        self.levelCompletePanel = pygame.Surface((self.surfaceX, self.surfaceY))
         self.levelCompletePanel.fill((0,0,0))
-        self.levelCompletePanel.set_alpha(100)
+        self.levelCompletePanel.set_alpha(255)
 
-        self.nextLevelBtn = UIButton("Next Level", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (150, 50), (100, 350), sys.exit)
-        self.retryBtn = UIButton("Retry", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (150, 50), (390, 350), sys.exit)
-        self.mainMenuBtn = UIButton("Main Menu", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (150, 50), (390, 450), sys.exit)
-        self.levelSelectorBtn = UIButton("Level Selector", kenneyPixel, 30, (255, 255, 255), (255, 255, 255), (58, 0, 85), (139, 40, 185), (150, 50), (100, 450), sys.exit)
+        self.gameManager = None
 
-    def Draw(self, screen, click):
-        screen.blit(self.levelCompletePanel, (0, 0))
+        self.levelCompleteSFX = pygame.mixer.Sound('Assets/SFX/UI/SFX-LevelComplete.ogg')
+        self.levelCompleteSFXPlayed = False
 
-        self.nextLevelBtn.Update(screen, click)
-        self.retryBtn.Update(screen, click)
-        self.mainMenuBtn.Update(screen, click)
-        self.levelSelectorBtn.Update(screen, click)
+        self.nextLevelBtnSprites = Utilities.CutSpritesheet('Assets/Sprites/UI/next btn.png', (256, 128))
+        self.nextLevelBtn = UISpriteButton(self.nextLevelBtnSprites[0], (self.surfaceX / 2 - 128, self.surfaceY / 2 - 50), self.OnNextLevelButtonClick, self.OnNextLevelButtonHover)
 
-        Utilities.DrawText('LEVEL COMPLETE!', verminVibes, 75, (255, 255, 255), screen, self.screenX / 2, self.screenY / 3)
+        self.mainMenuBtnSprites = Utilities.CutSpritesheet('Assets/Sprites/UI/quit btn.png', (256, 128))
+        self.mainMenuBtn = UISpriteButton(self.mainMenuBtnSprites[0], (self.surfaceX / 2 - 128, self.surfaceY / 2 + 75), self.OnMainMenuButtonClick, self.OnMainMenuButtonHover)
 
+
+
+    def Draw(self, surface):
+
+        self.nextLevelBtn.DrawButton(self.levelCompletePanel)
+        self.mainMenuBtn.DrawButton(self.levelCompletePanel)
+
+        DrawText('Level Complete!', verminVibes, 128, (255, 255, 255), self.levelCompletePanel, (self.surfaceX / 2, 128))
+
+
+        DrawText('Pontos colocados: ' + str(self.gameManager.pointsPlaced), kenneyPixel, 64, (255, 255, 255), self.levelCompletePanel, (self.surfaceX / 2, self.surfaceY / 2 + 200))
+        DrawText('Penis: ' + str(self.gameManager.runTimes), kenneyPixel, 64, (255, 255, 255), self.levelCompletePanel, (self.surfaceX / 2, self.surfaceY / 2 + 300))
+
+        surface.blit(self.levelCompletePanel, (0, 0))
+
+    def OnNextLevelButtonHover(self):
+        pass
+
+    def OnNextLevelButtonClick(self):
+        pass
+
+    def OnMainMenuButtonHover(self):
+        pass
+
+    def OnMainMenuButtonClick(self):
+        pass
+
+    def PlayLevelCompleteSFX(self):
+        if not self.levelCompleteSFXPlayed:
+            self.levelCompleteSFX.play()
+            self.levelCompleteSFXPlayed = True
 
 #region Splash
 class SplashScreenCanvas1():

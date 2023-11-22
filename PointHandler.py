@@ -40,7 +40,7 @@ class PointHandler():
 
     def DrawPointPreview(self, valid, pos, surface):
         selectedTileSurface = pygame.Surface((64, 64), pygame.SRCALPHA)  # Use SRCALPHA para permitir transparência
-        pointSprites = Utilities.CutSpritesheet('Sprites/Objects/point.png', (64, 64))
+        pointSprites = Utilities.CutSpritesheet('Assets/Sprites/Objects/point.png', (64, 64))
 
         if not valid:
             color = (255, 0, 0, 255)

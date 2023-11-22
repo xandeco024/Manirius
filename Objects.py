@@ -14,7 +14,7 @@ class Object(pygame.sprite.Sprite):
 class PointObj(Object):
     def __init__(self, pos):
         
-        super().__init__('Sprites/Objects/point.png', (64,64), pos, 0)
+        super().__init__('Assets/Sprites/Objects/point.png', (64,64), pos, 0)
 
     #banana
 

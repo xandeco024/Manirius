@@ -11,8 +11,9 @@ class GameManager():
         self.pointsPlaced = 0
         self.runTimes = 0
         self.clockTick = 60
-
         self.speed = 1
+
+        self.playerLastPlayPos = None
 
         #Scene
         self.scene = scene
@@ -23,6 +24,7 @@ class GameManager():
         self.player = scene.player
         self.pointHandler = scene.pointHandler
         self.hud = scene.hudCanvas
+        self.levelComplete = scene.levelCompleteCanvas
 
         #setando as coisa
         self.pointHandler.gameManager = self
@@ -31,6 +33,8 @@ class GameManager():
         self.player.pointHandler = self.pointHandler
 
         self.hud.gameManager = self
+
+        self.levelComplete.gameManager = self
 
     def SimulationSpeedUp(self):
         if self.speed < 3:
@@ -45,28 +49,20 @@ class GameManager():
             self.clock.tick(self.clockTick)
 
     def Update(self):
-        if self.events['space']:
-            self.TogglePlayMode()
-
-        if self.events['one']:
-            if not self.playMode:
-                self.pointSelected = not self.pointSelected
-
-        if not self.pointHandler.pointList:
-            self.playMode = False
-
         if self.playMode:
             self.player.canMove = True
-
             if self.pointSelected:
                 self.pointSelected = False
 
         else:
             self.player.canMove = False
 
+        if self.playMode and not self.pointHandler.pointList:
+            self.runTimes += 1
+            self.playMode = False
 
-    def TogglePause(self):
-        pass
+    def TogglePauseGame(self):
+        self.pauseGame = not self.pauseGame
 
     def RestartLevel(self):
         self.playMode = False
@@ -77,8 +73,6 @@ class GameManager():
 
     def TogglePlayMode(self):
         self.playMode = not self.playMode
-        if not self.playMode:
-            self.RestartLevel()
 
     def TogglePointSelected(self):
         self.pointSelected = not self.pointSelected

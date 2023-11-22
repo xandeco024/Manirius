@@ -10,7 +10,7 @@ class Player(pygame.sprite.Sprite): #Classe do player
 
         self.startPos = startPos
 
-        self.playerSprite = "Sprites/ROBB9/ROBB9.png"
+        self.playerSprite = "Assets/Sprites/ROBB9/ROBB9.png"
         self.image = pygame.image.load(self.playerSprite).convert_alpha()
 
         self.rect = self.image.get_rect()
@@ -21,25 +21,26 @@ class Player(pygame.sprite.Sprite): #Classe do player
         self.canMove = False
 
         self.direction = [0,0]
+        self.rotation = 0
 
         self.animations = {
             'idle': {
-                'spritesheet': "Sprites/ROBB9/ROBB9.png",
+                'spritesheet': "Assets/Sprites/ROBB9/ROBB9.png",
                 'size': (64, 64),
                 'speed': 1,
             },
             'sliding': {
-                'spritesheet': "Sprites/ROBB9/sliding sheet.png",
+                'spritesheet': "Assets/Sprites/ROBB9/sliding sheet.png",
                 'size': (64, 64),
                 'speed': 0.1,
             },
             'dying': {
-                'spritesheet': "Sprites/ROBB9/dying sheet.png",
+                'spritesheet': "Assets/Sprites/ROBB9/dying sheet.png",
                 'size': (64, 64),
                 'speed': 0.1,
             },
             'damage': {
-                'spritesheet': "Sprites/ROBB9/damage sheet.png",
+                'spritesheet': "Assets/Sprites/ROBB9/damage sheet.png",
                 'size': (64, 64),
                 'speed': 0.1,
             }
@@ -61,18 +62,26 @@ class Player(pygame.sprite.Sprite): #Classe do player
             if self.rect.x - targetPoint.rect.x > 0:
                 self.rect.x -= self.playerSpeed
                 self.direction = [-1,0]
+                if self.rotation != 90:
+                    self.rotation = 90
             
             elif self.rect.x - targetPoint.rect.x < 0:
                 self.rect.x += self.playerSpeed
                 self.direction = [1,0]
+                if self.rotation != 270:
+                    self.rotation = 270
 
             elif self.rect.y - targetPoint.rect.y > 0:
                 self.rect.y -= self.playerSpeed
                 self.direction = [0,-1]
+                if self.rotation != 0:
+                    self.rotation = 0
 
             elif self.rect.y - targetPoint.rect.y < 0:
                 self.rect.y += self.playerSpeed
                 self.direction = [0,1]
+                if self.rotation != 180:
+                    self.rotation = 180
 
         else :
             self.direction = [0,0]
@@ -94,19 +103,8 @@ class Player(pygame.sprite.Sprite): #Classe do player
 
     def Draw(self, surface):
         self.image, self.done = self.animator.GetAnimation()
-        self.Rotate(self.direction)
+        self.image = pygame.transform.rotate(self.image, self.rotation)
         surface.blit(self.image, (self.rect.x, self.rect.y))
-
-    def Rotate(self, dir):
-
-        if dir == [1,0]:
-            self.image = pygame.transform.rotate(self.image, 270)
-        elif dir == [-1, 0]:
-            self.image = pygame.transform.rotate(self.image, 90)
-        elif dir == [0, 1]:
-            self.image = pygame.transform.rotate(self.image, 180)
-        elif dir == [0, -1]:
-            self.image = pygame.transform.rotate(self.image, 0)
 
     def ReturnToStart(self):
         self.rect.x = self.startPos[0]

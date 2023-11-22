@@ -14,11 +14,6 @@ screen = pygame.display.set_mode((1280, 720))
 pygame.display.set_caption("Mánirius")
 clock = pygame.time.Clock()
 #endregion
-
-#region Global Variables
-verminVibes = "Fonts/Vermin Vibes 1989.ttf"
-kenneyPixel = "Fonts/Kenney Pixel.ttf"
-#endregion
         
 class SplashScreen():
     def __init__(self, surface, inputs, sceneManager):
@@ -26,7 +21,7 @@ class SplashScreen():
         self.surface = surface
         self.sceneManager = sceneManager
 
-        self.sprites = LoadSprites('Sprites/Splash/reduced')
+        self.sprites = LoadSprites('Assets/Sprites/Splash/reduced')
         self.spriteIndex = 0
         self.speed = 0.3
 
@@ -37,12 +32,12 @@ class SplashScreen():
             self.sceneManager.LoadScene('mainMenu')
 
     def Draw(self):        
-        self.surface.fill((0, 0, 0))
+        self.surface.fill((0, 0, 0)) 
         self.surface.blit(self.sprites[int(self.spriteIndex)], (0, 0))
 
 class MainMenu():
     def __init__(self, surface, inputs, sceneManager):   
-        pygame.mixer.music.load('BGM/menu1.mp3')
+        pygame.mixer.music.load('Assets/BGM/menu1.mp3')
         pygame.mixer.music.play(-1)
         self.surface = surface
         self.sceneManager = sceneManager
@@ -85,11 +80,13 @@ class PlayableScene(Scene): #CENA JOGAVEL
 
         #Scene objects
 
-        self.level = Tilemap.Level(mapArray, "Sprites/Tileset/tileset.png")
-        self.background = Background("Sprites/UI/background.jpg", [-0.5, -0.5])
-        self.hudCanvas = HUDCanvas()
+        self.level = Tilemap.Level(mapArray, "Assets/Sprites/Tileset/tileset.png")
+        self.background = Background("Assets/Sprites/UI/background.jpg", [-0.5, -0.5])
         self.pointHandler = PointHandler(self.mapArray)
         self.player = Player(self.playerStartPos)
+
+        self.hudCanvas = HUDCanvas()
+        self.levelCompleteCanvas = LevelCompleteCanvas()
 
         self.gameManager = GameManager(self)
 
@@ -97,8 +94,8 @@ class PlayableScene(Scene): #CENA JOGAVEL
         if self.player.rect.x == self.winPos[0] and self.player.rect.y == self.winPos[1]:
             self.complete = True
 
-        if self.complete and events['space']: #Implementar logica pra passar de fase
-            self.sceneManager.LoadScene(self.nextLevel)
+        if self.complete:
+            self.levelCompleteCanvas.PlayLevelCompleteSFX()
 
     def Update(self):
         super().Update()
@@ -132,10 +129,10 @@ class Level1(PlayableScene):
 
         #Particularidades do lvl
 
-        self.decoTable = Objects.DecorativeObject('Sprites/Objects/table.png', (128, 64), (128, 64), -180)
-        self.decoPanel = Objects.DecorativeObject('Sprites/Objects/panel.png', (64, 64), (64, 0), 90)
-        self.decoNiche = Objects.DecorativeObject('Sprites/Objects/nicho em ingles.png', (64, 64), (256, 0), 0)
-        self.decoPc = Objects.DecorativeObject('Sprites/Objects/pc.png', (64, 64), (512-128, 0), 0)
+        self.decoTable = Objects.DecorativeObject('Assets/Sprites/Objects/table.png', (128, 64), (128, 64), -180)
+        self.decoPanel = Objects.DecorativeObject('Assets/Sprites/Objects/panel.png', (64, 64), (64, 0), 90)
+        self.decoNiche = Objects.DecorativeObject('Assets/Sprites/Objects/nicho em ingles.png', (64, 64), (256, 0), 0)
+        self.decoPc = Objects.DecorativeObject('Assets/Sprites/Objects/pc.png', (64, 64), (512-128, 0), 0)
 
         super().__init__(playerStartPos, winPos, nextLevel, mapArray, surface, clock, events, sceneManager)
 
@@ -161,6 +158,9 @@ class Level1(PlayableScene):
         self.surface.blit(self.gameSurface, (320,0))
 
         self.hudCanvas.DrawHUD(screen)
+
+        if self.complete:
+            self.levelCompleteCanvas.Draw(screen)
 
 class Level2(PlayableScene):
     def __init__(self, surface, clock, events, sceneManager):
