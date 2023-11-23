@@ -368,7 +368,7 @@ class LevelCompleteCanvas():
     def __init__(self):
         self.surfaceX, self.surfaceY = 1280, 720
         self.levelCompletePanel = pygame.Surface((self.surfaceX, self.surfaceY))
-        self.levelCompletePanel.fill((0,0,0))
+
         self.levelCompletePanel.set_alpha(255)
 
         self.gameManager = None
@@ -376,15 +376,19 @@ class LevelCompleteCanvas():
         self.levelCompleteSFX = pygame.mixer.Sound('Assets/SFX/UI/SFX-LevelComplete.ogg')
         self.levelCompleteSFXPlayed = False
 
+        self.levelCompleteBackground = pygame.Surface((self.surfaceX, self.surfaceY))
+        self.levelCompleteBackground.fill((0, 0, 0))
+        self.levelCompleteBackground.set_alpha(128)
+
         self.nextLevelBtnSprites = Utilities.CutSpritesheet('Assets/Sprites/UI/next btn.png', (256, 128))
         self.nextLevelBtn = UISpriteButton(self.nextLevelBtnSprites[0], (self.surfaceX / 2 - 128, self.surfaceY / 2 - 50), self.OnNextLevelButtonClick, self.OnNextLevelButtonHover)
 
         self.mainMenuBtnSprites = Utilities.CutSpritesheet('Assets/Sprites/UI/quit btn.png', (256, 128))
         self.mainMenuBtn = UISpriteButton(self.mainMenuBtnSprites[0], (self.surfaceX / 2 - 128, self.surfaceY / 2 + 75), self.OnMainMenuButtonClick, self.OnMainMenuButtonHover)
 
-
-
     def Draw(self, surface):
+
+        self.levelCompletePanel.blit(self.levelCompleteBackground, (0, 0))
 
         self.nextLevelBtn.DrawButton(self.levelCompletePanel)
         self.mainMenuBtn.DrawButton(self.levelCompletePanel)
@@ -392,8 +396,8 @@ class LevelCompleteCanvas():
         DrawText('Level Complete!', verminVibes, 128, (255, 255, 255), self.levelCompletePanel, (self.surfaceX / 2, 128))
 
 
-        DrawText('Pontos colocados: ' + str(self.gameManager.pointsPlaced), kenneyPixel, 64, (255, 255, 255), self.levelCompletePanel, (self.surfaceX / 2, self.surfaceY / 2 + 200))
-        DrawText('Penis: ' + str(self.gameManager.runTimes), kenneyPixel, 64, (255, 255, 255), self.levelCompletePanel, (self.surfaceX / 2, self.surfaceY / 2 + 300))
+        DrawText(str(self.gameManager.pointsPlaced), kenneyPixel, 64, (255, 255, 255), self.levelCompletePanel, (self.surfaceX / 2, self.surfaceY / 2 + 200))
+        DrawText('Turnos: ' + str(self.gameManager.runTimes), kenneyPixel, 64, (255, 255, 255), self.levelCompletePanel, (self.surfaceX / 2, self.surfaceY / 2 + 300))
 
         surface.blit(self.levelCompletePanel, (0, 0))
 
