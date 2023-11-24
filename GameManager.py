@@ -1,7 +1,7 @@
 import pygame
 
 class GameManager():
-    def __init__(self, scene):
+    def __init__(self, level):
 
         self.pauseGame = False
 
@@ -16,15 +16,15 @@ class GameManager():
         self.playerLastPlayPos = None
 
         #Scene
-        self.scene = scene
-        self.clock = scene.clock
-        self.events = scene.events
-        self.surface = scene.surface
+        self.level = level
+        self.clock = level.clock
+        self.events = level.events
+        self.surface = level.surface
 
-        self.player = scene.player
-        self.pointHandler = scene.pointHandler
-        self.hud = scene.hudCanvas
-        self.levelComplete = scene.levelCompleteCanvas
+        self.player = level.player
+        self.pointHandler = level.pointHandler
+        self.hud = level.hudCanvas
+        self.levelComplete = level.levelCompleteCanvas
 
         #setando as coisa
         self.pointHandler.gameManager = self
@@ -39,14 +39,12 @@ class GameManager():
     def SimulationSpeedUp(self):
         if self.speed < 3:
             self.speed += 1
-            self.clockTick += 60
-            self.clock.tick(self.clockTick)
+            self.level.clockTick += 60
     
     def SimulationSpeedDown(self):
         if self.speed > 1:
             self.speed -= 1
-            self.clockTick -= 60
-            self.clock.tick(self.clockTick)
+            self.level.clockTick -= 60
 
     def Update(self):
         if self.playMode:
@@ -70,6 +68,8 @@ class GameManager():
         self.pointHandler.pointList.clear()
         self.player.rect.x = self.player.startPos[0]
         self.player.rect.y = self.player.startPos[1]
+        if self.level.complete:
+            self.level.complete = False
 
     def TogglePlayMode(self):
         self.playMode = not self.playMode

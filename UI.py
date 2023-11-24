@@ -368,8 +368,9 @@ class LevelCompleteCanvas():
     def __init__(self):
         self.surfaceX, self.surfaceY = 1280, 720
         self.levelCompletePanel = pygame.Surface((self.surfaceX, self.surfaceY))
+        self.levelCompletePanel.fill((0,255,0))
+        self.levelCompletePanel.set_colorkey((0, 255, 0))
 
-        self.levelCompletePanel.set_alpha(255)
 
         self.gameManager = None
 
@@ -380,24 +381,46 @@ class LevelCompleteCanvas():
         self.levelCompleteBackground.fill((0, 0, 0))
         self.levelCompleteBackground.set_alpha(128)
 
+        self.starsSprites = Utilities.CutSpritesheet('Assets/Sprites/UI/stars.png', (192, 64))
+        self.starsImage = UIImage(self.starsSprites[0], (self.surfaceX / 2 - 96, 200))
+
+        self.pointsPlacedSprite = pygame.image.load('Assets/Sprites/UI/points placed.png').convert_alpha()
+        self.pointsPlacedImage = UIImage(self.pointsPlacedSprite, (self.surfaceX / 2 - 128, 200))
+
         self.nextLevelBtnSprites = Utilities.CutSpritesheet('Assets/Sprites/UI/next btn.png', (256, 128))
-        self.nextLevelBtn = UISpriteButton(self.nextLevelBtnSprites[0], (self.surfaceX / 2 - 128, self.surfaceY / 2 - 50), self.OnNextLevelButtonClick, self.OnNextLevelButtonHover)
+        self.nextLevelBtn = UISpriteButton(self.nextLevelBtnSprites[0], (self.surfaceX / 2 + 32, self.surfaceY / 2 - 50), self.OnNextLevelButtonClick, self.OnNextLevelButtonHover)
+
+        self.retryBtnSprites = Utilities.CutSpritesheet('Assets/Sprites/UI/restart btn.png', (256, 128))
+        self.retryBtn = UISpriteButton(self.retryBtnSprites[0], (self.surfaceX / 2 - 288, self.surfaceY / 2 - 50), self.OnRetryButtonClick, self.OnRetryButtonHover)
 
         self.mainMenuBtnSprites = Utilities.CutSpritesheet('Assets/Sprites/UI/quit btn.png', (256, 128))
-        self.mainMenuBtn = UISpriteButton(self.mainMenuBtnSprites[0], (self.surfaceX / 2 - 128, self.surfaceY / 2 + 75), self.OnMainMenuButtonClick, self.OnMainMenuButtonHover)
+        self.mainMenuBtn = UISpriteButton(self.mainMenuBtnSprites[0], (self.surfaceX / 2 - 288, self.surfaceY / 2 + 75), self.OnMainMenuButtonClick, self.OnMainMenuButtonHover)
+
+        self.helpBtnSprites = Utilities.CutSpritesheet('Assets/Sprites/UI/help btn.png', (256, 128))
+        self.helpBtn = UISpriteButton(self.helpBtnSprites[0], (self.surfaceX / 2 + 32, self.surfaceY / 2 + 75), self.OnHelpButtonClick, self.OnHelpButtonHover)
+
+    def Update(self):
+        self.nextLevelBtn.Update(self.gameManager.events['leftClick'])
+        self.mainMenuBtn.Update(self.gameManager.events['leftClick'])
+        self.retryBtn.Update(self.gameManager.events['leftClick'])
+        self.helpBtn.Update(self.gameManager.events['leftClick'])
 
     def Draw(self, surface):
 
-        self.levelCompletePanel.blit(self.levelCompleteBackground, (0, 0))
-
-        self.nextLevelBtn.DrawButton(self.levelCompletePanel)
-        self.mainMenuBtn.DrawButton(self.levelCompletePanel)
+        surface.blit(self.levelCompleteBackground, (0, 0))
 
         DrawText('Level Complete!', verminVibes, 128, (255, 255, 255), self.levelCompletePanel, (self.surfaceX / 2, 128))
 
+        self.starsImage.DrawImage(self.levelCompletePanel)
 
-        DrawText(str(self.gameManager.pointsPlaced), kenneyPixel, 64, (255, 255, 255), self.levelCompletePanel, (self.surfaceX / 2, self.surfaceY / 2 + 200))
+        self.pointsPlacedImage.DrawImage(self.levelCompletePanel)
+        DrawText(str(self.gameManager.pointsPlaced), kenneyPixel, 64, (255, 255, 255), self.levelCompletePanel, (self.surfaceX / 2 - 64, 200))
         DrawText('Turnos: ' + str(self.gameManager.runTimes), kenneyPixel, 64, (255, 255, 255), self.levelCompletePanel, (self.surfaceX / 2, self.surfaceY / 2 + 300))
+
+        self.nextLevelBtn.DrawButton(self.levelCompletePanel)
+        self.mainMenuBtn.DrawButton(self.levelCompletePanel)
+        self.retryBtn.DrawButton(self.levelCompletePanel)
+        self.helpBtn.DrawButton(self.levelCompletePanel)
 
         surface.blit(self.levelCompletePanel, (0, 0))
 
@@ -405,12 +428,24 @@ class LevelCompleteCanvas():
         pass
 
     def OnNextLevelButtonClick(self):
-        pass
+        self.gameManager.level.sceneManager.LoadScene(self.gameManager.level.nextLevel)
 
     def OnMainMenuButtonHover(self):
         pass
 
     def OnMainMenuButtonClick(self):
+        self.gameManager.level.sceneManager.LoadScene('mainMenu')
+
+    def OnRetryButtonHover(self):
+        pass
+
+    def OnRetryButtonClick(self):
+        self.gameManager.level.sceneManager.LoadScene(self.gameManager.level.name)
+
+    def OnHelpButtonHover(self):
+        pass
+
+    def OnHelpButtonClick(self):
         pass
 
     def PlayLevelCompleteSFX(self):
