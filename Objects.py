@@ -27,3 +27,25 @@ class DecorativeObject(Object):
         surface.blit(self.image, self.pos)    
     #banana
 
+class Button(Object):
+    def __init__(self, pos, link, gameManager):
+        self.link = link
+        self.gameManager = gameManager
+        self.pressed = False
+
+        super().__init__('Assets/Sprites/Objects/button.png', (64,64), pos, 0)
+
+    def Activate():
+        pass
+
+    def Update(self):
+        #verificar se o jogador está em cima do botão
+
+        if self.gameManager.player.rect.center == self.rect.center and not self.pressed:
+            self.pressed = True
+            #self.link.Activate()
+            self.image = self.sprites[1]
+            print('buceta')
+
+    def Draw(self, surface):
+        surface.blit(self.image, self.rect)

@@ -15,7 +15,6 @@ pygame.display.set_caption("Mánirius")
 clock = pygame.time.Clock()
 #endregion
 
-
 class Scene(): #CENA BASE PARA CENAS JOGAVEIES E NAO JOGAVEIS.
     def __init__(self, name, surface, clock,  events, sceneManager):
         self.surface = surface
@@ -46,13 +45,12 @@ class SplashScreen(Scene):
         self.surface.fill((0, 0, 0)) 
         self.surface.blit(self.sprites[int(self.spriteIndex)], (0, 0))
 
-
 class MainMenu(Scene):
     def __init__(self, surface, clock, events, sceneManager):
         super().__init__('mainMenu', surface, clock, events, sceneManager)
 
         pygame.mixer.music.load('Assets/BGM/menu1.mp3')
-        pygame.mixer.music.play(-1)
+        #pygame.mixer.music.play(-1)
 
         self.mainMenuCanvas = MainMenuCanvas(self.surface, self.events, self.sceneManager)
 
@@ -149,10 +147,10 @@ class Level1(PlayableScene):
 
         #Particularidades do lvl
 
-        self.decoTable = Objects.DecorativeObject('Assets/Sprites/Objects/table.png', (128, 64), (128, 64), -180)
-        self.decoPanel = Objects.DecorativeObject('Assets/Sprites/Objects/panel.png', (64, 64), (64, 0), 90)
-        self.decoNiche = Objects.DecorativeObject('Assets/Sprites/Objects/nicho em ingles.png', (64, 64), (256, 0), 0)
-        self.decoPc = Objects.DecorativeObject('Assets/Sprites/Objects/pc.png', (64, 64), (512-128, 0), 0)
+        #self.decoTable = Objects.DecorativeObject('Assets/Sprites/Objects/table.png', (128, 64), (128, 64), -180)
+        #self.decoPanel = Objects.DecorativeObject('Assets/Sprites/Objects/panel.png', (64, 64), (64, 0), 90)
+        #self.decoNiche = Objects.DecorativeObject('Assets/Sprites/Objects/nicho em ingles.png', (64, 64), (256, 0), 0)
+        #self.decoPc = Objects.DecorativeObject('Assets/Sprites/Objects/pc.png', (64, 64), (512-128, 0), 0)
 
         super().__init__('level1', playerStartPos, winPos, nextLevel, mapArray, surface, clock, events, sceneManager)
 
@@ -162,7 +160,6 @@ class Level1(PlayableScene):
     def Draw(self):
         self.surface.fill((0, 0, 0))
         super().Draw(self.surface)
-
 
 class Level2(PlayableScene):
     def __init__(self, surface, clock, events, sceneManager):
@@ -185,16 +182,35 @@ class Level2(PlayableScene):
             [51, 2, 2, 2, 2,53,12,12,12,12]
         ]
 
-        #Particularidades do lvl
 
         super().__init__('level2',playerStartPos, winPos, nextLevel, mapArray, surface, clock, events, sceneManager)
 
+        #Particularidades do lvl
+        self.button1 = Objects.Button((128, 64), 'link', self.gameManager)
+
     def Update(self):
         super().Update()
+        self.button1.Update()
 
     def Draw(self):
         self.surface.fill((0, 0, 0))
-        super().Draw(self.surface)
+        #super().Draw(self.surface) #requer organizacao na renderizacao e tals
+
+        self.background.DrawBackground(self.surface)
+
+        self.level.Draw(self.gameSurface)
+        self.button1.Draw(self.gameSurface)
+
+        self.pointHandler.Draw(self.gameSurface)
+
+        self.player.Draw(self.gameSurface)
+
+        self.surface.blit(self.gameSurface, (320,0))
+
+        self.hudCanvas.DrawHUD(self.surface)
+
+        if self.complete:
+            self.levelCompleteCanvas.Draw(self.surface)
 
 class Level3(PlayableScene):
     def __init__(self, surface, clock, events, sceneManager):
@@ -292,36 +308,8 @@ class Level5(PlayableScene):
         self.surface.fill((0, 0, 0))
         super().Draw(self.surface)
 
-class Button(pygame.sprite.Sprite):
-    def __init__(self, pos, link): 
-        self.pos = pos
-        self.link = link
-        self.pressed = False
-
-        self.sprites = CutSpritesheet('Sprites/Objects/button.png', (64, 64))
-
-        self.image = self.sprites[0]
-        
-        self.rect = self.image.get_rect()
-        self.rect.x = self.pos[0]
-        self.rect.y = self.pos[1]
-
-        super().__init__()
-
-    def Press(self):
-        self.pressed = True
-        self.image = self.sprites[1]
-        #self.link.Action()
-
-    def Draw(self, screen):
-        screen.blit(self.image, (self.pos[0], self.pos[1]))
-
-    def Update(self):
-        pass
-
 class SceneManager():
     def __init__(self, initialScene):
-        print('SceneManager created' + initialScene)
         self.currentScene = self.LoadScene(initialScene)
 
     def LoadScene(self, scene):
@@ -356,7 +344,7 @@ class SceneManager():
 
 events = {'space': False, 'rightClick': False, 'leftClick': False, 'escape': False, 'tab': False, 'one': False}
 
-sceneManager = SceneManager('splashScreen')
+sceneManager = SceneManager('level2')
 
 #splashScreen = SplashScreen(screen, events, sceneManager)
 
