@@ -99,6 +99,21 @@ class PlayableScene(Scene): #CENA JOGAVEL
         if self.complete:
             self.levelCompleteCanvas.PlayLevelCompleteSFX()
 
+    def Draw(self, surface):
+        self.background.DrawBackground(surface)
+
+        self.level.Draw(self.gameSurface)
+        self.pointHandler.Draw(self.gameSurface)
+
+        self.player.Draw(self.gameSurface)
+
+        surface.blit(self.gameSurface, (320,0))
+
+        self.hudCanvas.DrawHUD(surface)
+
+        if self.complete:
+            self.levelCompleteCanvas.Draw(surface)
+
     def Update(self):
         super().Update()
         self.HandleProgess()
@@ -145,27 +160,9 @@ class Level1(PlayableScene):
         super().Update()
 
     def Draw(self):
-        screen.fill((0, 0, 0))
+        self.surface.fill((0, 0, 0))
+        super().Draw(self.surface)
 
-        self.background.DrawBackground(screen)
-
-        self.level.Draw(self.gameSurface)
-        self.pointHandler.Draw(self.gameSurface)
-
-        '''self.decoTable.Draw(self.gameSurface)
-        self.decoPanel.Draw(self.gameSurface)
-        self.decoNiche.Draw(self.gameSurface)
-        self.decoPc.Draw(self.gameSurface)'''
-
-
-        self.player.Draw(self.gameSurface)
-
-        self.surface.blit(self.gameSurface, (320,0))
-
-        self.hudCanvas.DrawHUD(screen)
-
-        if self.complete:
-            self.levelCompleteCanvas.Draw(screen)
 
 class Level2(PlayableScene):
     def __init__(self, surface, clock, events, sceneManager):
@@ -196,16 +193,8 @@ class Level2(PlayableScene):
         super().Update()
 
     def Draw(self):
-        screen.fill((0, 0, 0))
-
-        self.background.DrawBackground(screen)
-
-        self.level.Draw(self.gameSurface)
-        self.pointHandler.Draw(self.gameSurface)
-        self.player.Draw(self.gameSurface)
-        self.surface.blit(self.gameSurface, (320,0))
-
-        self.hudCanvas.DrawHUD(screen)
+        self.surface.fill((0, 0, 0))
+        super().Draw(self.surface)
 
 class Level3(PlayableScene):
     def __init__(self, surface, clock, events, sceneManager):
@@ -236,16 +225,8 @@ class Level3(PlayableScene):
         super().Update()
 
     def Draw(self):
-        screen.fill((0, 0, 0))
-
-        self.background.DrawBackground(screen)
-
-        self.level.Draw(self.gameSurface)
-        self.pointHandler.Draw(self.gameSurface)
-        self.player.Draw(self.gameSurface)
-        self.surface.blit(self.gameSurface, (320,0))
-
-        self.hudCanvas.DrawHUD(screen)
+        self.surface.fill((0, 0, 0))
+        super().Draw(self.surface)
 
 class Level4(PlayableScene):
     def __init__(self, surface, clock, events, sceneManager):
@@ -276,16 +257,8 @@ class Level4(PlayableScene):
         super().Update()
 
     def Draw(self):
-        screen.fill((0, 0, 0))
-
-        self.background.DrawBackground(screen)
-
-        self.level.Draw(self.gameSurface)
-        self.pointHandler.Draw(self.gameSurface)
-        self.player.Draw(self.gameSurface)
-        self.surface.blit(self.gameSurface, (320,0))
-
-        self.hudCanvas.DrawHUD(screen)
+        self.surface.fill((0, 0, 0))
+        super().Draw(self.surface)
 
 class Level5(PlayableScene):
     def __init__(self, surface, clock, events, sceneManager):
@@ -316,16 +289,8 @@ class Level5(PlayableScene):
         super().Update()
 
     def Draw(self):
-        screen.fill((0, 0, 0))
-
-        self.background.DrawBackground(screen)
-
-        self.level.Draw(self.gameSurface)
-        self.pointHandler.Draw(self.gameSurface)
-        self.player.Draw(self.gameSurface)
-        self.surface.blit(self.gameSurface, (320,0))
-
-        self.hudCanvas.DrawHUD(screen)
+        self.surface.fill((0, 0, 0))
+        super().Draw(self.surface)
 
 class Button(pygame.sprite.Sprite):
     def __init__(self, pos, link): 
