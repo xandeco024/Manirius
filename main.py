@@ -185,12 +185,14 @@ class Level2(PlayableScene):
 
         super().__init__('level2',playerStartPos, winPos, nextLevel, mapArray, surface, clock, events, sceneManager)
 
-        #Particularidades do lvl
-        self.button1 = Objects.Button((128, 64), 'link', self.gameManager)
+        #Particularidades do 
+        self.laser1 = Objects.Laser((320, 384), 90, True, self.gameManager)
+        self.button1 = Objects.Button((128, 64), self.laser1, self.gameManager)
 
     def Update(self):
         super().Update()
         self.button1.Update()
+        self.laser1.Update()
 
     def Draw(self):
         self.surface.fill((0, 0, 0))
@@ -200,6 +202,7 @@ class Level2(PlayableScene):
 
         self.level.Draw(self.gameSurface)
         self.button1.Draw(self.gameSurface)
+        self.laser1.Draw(self.gameSurface)
 
         self.pointHandler.Draw(self.gameSurface)
 

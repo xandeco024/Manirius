@@ -110,3 +110,7 @@ class Player(pygame.sprite.Sprite): #Classe do player
         self.rect.x = self.startPos[0]
         self.rect.y = self.startPos[1]
         self.direction = [0,0]
+
+    def Die(self):
+        self.animator.SetAnimation('dying')
+        self.canMove = False
