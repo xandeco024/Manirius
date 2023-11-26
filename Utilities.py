@@ -122,13 +122,18 @@ def Animate(self, animation):
 class Animator():
     def __init__(self, animations):
         self.animations = animations
+        self.currentAnimation = None
         self.sprites = None
         self.speed = 1
+        self.originalSpeed = 1
         self.spriteIndex = 0
         self.done = False
     
+    def GetSprite(self):
+        return self.sprites[int(self.spriteIndex)]
+    
     def GetAnimation(self):
-        return self.sprites[int(self.spriteIndex)], self.done
+        return self.currentAnimation['name'], self.done
 
     def Update(self):
         self.spriteIndex += self.speed
@@ -141,8 +146,17 @@ class Animator():
             self.done = False
 
     def SetAnimation(self, animation):
-        self.sprites = CutSpritesheet(self.animations[animation]['spritesheet'], self.animations[animation]['size'])
-        self.speed = self.animations[animation]['speed']
+        self.currentAnimation = self.animations[animation]
+        self.sprites = CutSpritesheet(self.currentAnimation['spritesheet'], self.currentAnimation['size'])
+        self.speed = self.currentAnimation['speed']
+        self.originalSpeed = self.speed
+        self.spriteIndex = 0
+
+    def PauseAnimation(self):
+        self.speed = 0
+
+    def ResumeAnimation(self):
+        self.speed = self.originalSpeed
 
 def LoadSprites(image_folder):
     images = [img for img in os.listdir(image_folder) if img.endswith(".jpg")]

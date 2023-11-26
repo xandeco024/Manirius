@@ -48,7 +48,8 @@ class GameManager():
 
     def Update(self):
         if self.playMode:
-            self.player.canMove = True
+            if not self.player.dead:
+                self.player.canMove = True
             if self.pointSelected:
                 self.pointSelected = False
 
@@ -56,7 +57,6 @@ class GameManager():
             self.player.canMove = False
 
         if self.playMode and not self.pointHandler.pointList:
-            self.runTimes += 1
             self.playMode = False
 
     def TogglePauseGame(self):
@@ -68,11 +68,28 @@ class GameManager():
         self.pointHandler.pointList.clear()
         self.player.rect.x = self.player.startPos[0]
         self.player.rect.y = self.player.startPos[1]
+        self.player.direction = [0,0]
+        self.player.dead = False
+        self.player.rotation = 0
+        self.player.canMove = False
+
+        for laser in self.level.lasers:
+            if laser.initiallyActive:
+                laser.Enable()
+            else:
+                laser.Disable()
+
+        for button in self.level.buttons:
+            if button.pressed:
+                button.pressed = False
+
         if self.level.complete:
             self.level.complete = False
 
     def TogglePlayMode(self):
         self.playMode = not self.playMode
+        if self.playMode:
+            self.runTimes += 1
 
     def TogglePointSelected(self):
         self.pointSelected = not self.pointSelected

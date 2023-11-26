@@ -20,29 +20,29 @@ class Player(pygame.sprite.Sprite): #Classe do player
         self.playerSpeed = 4
         self.canMove = False
 
+        self.dead = False
+
         self.direction = [0,0]
         self.rotation = 0
 
         self.animations = {
             'idle': {
-                'spritesheet': "Assets/Sprites/ROBB9/ROBB9.png",
+                'name': 'idle', #Nome da animação
+                'spritesheet': "Assets/Sprites/ROBB9/idle.png",
                 'size': (64, 64),
-                'speed': 1,
+                'speed': 0.1,
             },
             'sliding': {
-                'spritesheet': "Assets/Sprites/ROBB9/sliding sheet.png",
+                'name': 'sliding', #Nome da animação
+                'spritesheet': "Assets/Sprites/ROBB9/sliding.png",
                 'size': (64, 64),
                 'speed': 0.1,
             },
             'dying': {
-                'spritesheet': "Assets/Sprites/ROBB9/dying sheet.png",
+                'name': 'dying', #Nome da animação
+                'spritesheet': "Assets/Sprites/ROBB9/dying.png",
                 'size': (64, 64),
-                'speed': 0.1,
-            },
-            'damage': {
-                'spritesheet': "Assets/Sprites/ROBB9/damage sheet.png",
-                'size': (64, 64),
-                'speed': 0.1,
+                'speed': 0.12,
             }
         }
 
@@ -50,11 +50,22 @@ class Player(pygame.sprite.Sprite): #Classe do player
         self.animator.SetAnimation('sliding')
 
     def HandleAnimations(self):
-        if self.direction == [0,0]:
+        animation, done = self.animator.GetAnimation()
+        #print(animation)
+
+        if self.direction == [0,0] and animation != 'idle' and not self.dead:
+            self.animator.SetAnimation('idle')
+
+        if self.direction != [0,0] and animation != 'sliding' and not self.dead:
             self.animator.SetAnimation('sliding')
 
-        if self.direction != [0,0]:
-            self.animator.SetAnimation('sliding')
+        if self.dead and animation != 'dying':
+            print('marco')
+            self.animator.SetAnimation('dying')
+
+        if animation == 'dying' and done:
+            self.animator.PauseAnimation()
+            self.gameManager.RestartLevel()
 
     def MovePlayer(self):
         targetPoint = self.SearchTarget()
@@ -97,12 +108,14 @@ class Player(pygame.sprite.Sprite): #Classe do player
 
         if self.canMove:
             self.MovePlayer()
+        print(self.canMove)
 
-        self.animator.Update()
         #self.HandleAnimations()
+        self.animator.Update()
+        self.HandleAnimations()
 
     def Draw(self, surface):
-        self.image, self.done = self.animator.GetAnimation()
+        self.image = self.animator.GetSprite()
         self.image = pygame.transform.rotate(self.image, self.rotation)
         surface.blit(self.image, (self.rect.x, self.rect.y))
 
@@ -112,5 +125,8 @@ class Player(pygame.sprite.Sprite): #Classe do player
         self.direction = [0,0]
 
     def Die(self):
-        self.animator.SetAnimation('dying')
-        self.canMove = False
+        print('polo')
+        if not self.dead:
+            self.dead = True
+            self.direction = [0,0]
+            self.canMove = False

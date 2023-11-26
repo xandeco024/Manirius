@@ -90,6 +90,10 @@ class PlayableScene(Scene): #CENA JOGAVEL
 
         self.gameManager = GameManager(self)
 
+        self.lasers = []
+        self.buttons = []
+        self.portals = []
+
     def HandleProgess(self):
         if self.player.rect.x == self.winPos[0] and self.player.rect.y == self.winPos[1]:
             self.complete = True
@@ -120,6 +124,14 @@ class PlayableScene(Scene): #CENA JOGAVEL
         self.pointHandler.Update()
         self.player.Update()
         self.hudCanvas.Update()
+
+        if self.buttons:
+            for button in self.buttons:
+                button.Update()
+
+        if self.lasers:
+            for laser in self.lasers:
+                laser.Update()
 
         if self.complete:
             self.levelCompleteCanvas.Update()
@@ -185,14 +197,18 @@ class Level2(PlayableScene):
 
         super().__init__('level2',playerStartPos, winPos, nextLevel, mapArray, surface, clock, events, sceneManager)
 
-        #Particularidades do 
-        self.laser1 = Objects.Laser((320, 384), 90, True, self.gameManager)
-        self.button1 = Objects.Button((128, 64), self.laser1, self.gameManager)
+        #Particularidades do lvl
+
+        self.lasers = [
+            Objects.Laser((320, 384), 90, True, self.gameManager)
+            ]
+        
+        self.buttons = [
+            Objects.Button((128, 64), self.lasers, self.gameManager)
+        ]
 
     def Update(self):
         super().Update()
-        self.button1.Update()
-        self.laser1.Update()
 
     def Draw(self):
         self.surface.fill((0, 0, 0))
@@ -201,8 +217,12 @@ class Level2(PlayableScene):
         self.background.DrawBackground(self.surface)
 
         self.level.Draw(self.gameSurface)
-        self.button1.Draw(self.gameSurface)
-        self.laser1.Draw(self.gameSurface)
+
+        for button in self.buttons:
+            button.Draw(self.gameSurface)
+
+        for laser in self.lasers:
+            laser.Draw(self.gameSurface)
 
         self.pointHandler.Draw(self.gameSurface)
 
@@ -219,33 +239,78 @@ class Level3(PlayableScene):
     def __init__(self, surface, clock, events, sceneManager):
 
         #level 3 basics
-        playerStartPos = (64, 12)
-        winPos = (8*64, 8*64)
+        playerStartPos = (8 * 64, 1 * 64)
+        winPos = (64, 8*64)
         nextLevel = 'level4'
 
         mapArray = [
             [31,22,22,22,22,22,22,22,22,33],
-            [13,10,42,30,42,30,42,30,42,11],
-            [13,42,42,30,42,30,42,30,10,11],
-            [13,42,42,30,42,30,42,1,2,53],
-            [13,42,42,30,42,30,10,11,12,12],
-            [13,42,42,30,42,1,2,53,12,12],
-            [13,42,42,30,10,11,12,12,12,12],
-            [13,30,30,1,2,53,12,12,12,12],
+            [13,42,42,42,42,42,42,42,42,11],
+            [13,42,42,42,42,42,42,42,42,11],
+            [13,42,42,42,42,42,42,1,2,53],
+            [13,42,42,42,42,42,42,11,12,12],
+            [13,42,42,42,42,1,2,53,12,12],
+            [13,42,42,42,42,11,12,12,12,12],
+            [13,42,42,1,2,53,12,12,12,12],
             [13,42,42,11,12,12,12,12,12,12],
-            [51,52,52,53,12,12,12,12,12,12]
+            [51,52,2,53,12,12,12,12,12,12]
         ]
 
         #Particularidades do lvl
 
         super().__init__('level3', playerStartPos, winPos, nextLevel, mapArray, surface, clock, events, sceneManager)
 
+        self.lasers = [
+            Objects.Laser((7 * 64, 64), 90, True, self.gameManager),
+            Objects.Laser((7 * 64, 128), 90, True, self.gameManager),
+            Objects.Laser((5 * 64, 64), 90, True, self.gameManager),
+            Objects.Laser((5 * 64, 128), 90, True, self.gameManager),
+            Objects.Laser((5 * 64, 192), 90, True, self.gameManager),
+            Objects.Laser((5 * 64, 256), 90, True, self.gameManager),
+            Objects.Laser((3 * 64, 64), 90, True, self.gameManager),
+            Objects.Laser((3 * 64, 128), 90, True, self.gameManager),
+            Objects.Laser((3 * 64, 192), 90, True, self.gameManager),
+            Objects.Laser((3 * 64, 256), 90, True, self.gameManager),
+            Objects.Laser((3 * 64, 320), 90, True, self.gameManager),
+            Objects.Laser((3 * 64, 384), 90, True, self.gameManager),
+            Objects.Laser((1 * 64, 7 * 64), 0, True, self.gameManager),
+            Objects.Laser((2 * 64, 7 * 64), 0, True, self.gameManager)
+        ]
+    
+        self.buttons = [
+            Objects.Button((8 * 64, 128), [self.lasers[0], self.lasers[1]], self.gameManager),
+            Objects.Button((6 * 64, 256), [self.lasers[2],self.lasers[3], self.lasers[4], self.lasers[5]], self.gameManager),
+            Objects.Button((4 * 64, 384), [self.lasers[6], self.lasers[7], self.lasers[8], self.lasers[9], self.lasers[10], self.lasers[11]], self.gameManager),
+            Objects.Button((1 * 64, 64), [self.lasers[12], self.lasers[13]], self.gameManager)
+        ]
+
     def Update(self):
         super().Update()
 
     def Draw(self):
         self.surface.fill((0, 0, 0))
-        super().Draw(self.surface)
+        #super().Draw(self.surface) #requer organizacao na renderizacao e tals
+
+        self.background.DrawBackground(self.surface)
+
+        self.level.Draw(self.gameSurface)
+
+        for button in self.buttons:
+            button.Draw(self.gameSurface)
+
+        for laser in self.lasers:
+            laser.Draw(self.gameSurface)
+
+        self.pointHandler.Draw(self.gameSurface)
+
+        self.player.Draw(self.gameSurface)
+
+        self.surface.blit(self.gameSurface, (320,0))
+
+        self.hudCanvas.DrawHUD(self.surface)
+
+        if self.complete:
+            self.levelCompleteCanvas.Draw(self.surface)
 
 class Level4(PlayableScene):
     def __init__(self, surface, clock, events, sceneManager):

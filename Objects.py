@@ -43,20 +43,20 @@ class Button(Object):
 
         if self.gameManager.player.rect.center == self.rect.center and not self.pressed:
             self.pressed = True
-            self.link.Toggle()
+            for obj in self.link:
+                obj.Toggle()
             self.image = self.sprites[1]
-            print('buceta')
 
     def Draw(self, surface):
         surface.blit(self.image, self.rect)
 
 class Laser(Object):
-    def __init__(self, pos, rotation, active, gameManager):
+    def __init__(self, pos, rotation, initiallyActive, gameManager):
 
-        self.active = active
+        self.initiallyActive = initiallyActive
         self.gameManager = gameManager
 
-        if self.active:
+        if self.initiallyActive:
             self.Enable()
 
         super().__init__('Assets/Sprites/Objects/laser.png', (64,64), pos, rotation)
@@ -75,7 +75,6 @@ class Laser(Object):
 
     def Update(self):
         if self.gameManager.player.rect.center == self.rect.center and self.active:
-            print('i morreu')
             self.gameManager.player.Die()
 
     def Draw(self, surface):
