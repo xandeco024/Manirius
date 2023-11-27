@@ -12,6 +12,9 @@ class PointHandler():
         self.valid = False
         self.currentObjectRect = None
 
+        self.addPointSFX = pygame.mixer.Sound('Assets/SFX/Objects/SFX-AddPoint.ogg')
+        self.deletePointSFX = pygame.mixer.Sound('Assets/SFX/Objects/SFX-DeletePoint.ogg')
+
     def CalcMouseTilePos(self):
         mouseX, mouseY = pygame.mouse.get_pos()
         mouseX -= 320
@@ -95,9 +98,11 @@ class PointHandler():
         point = Objects.PointObj(pos)
         self.pointList.append(point)
         self.gameManager.pointsPlaced += 1
+        self.addPointSFX.play()
 
     def DeletePoint(self,index):
         self.pointList.pop(index)
+        self.deletePointSFX.play()
 
     def DrawPoints(self, surface):
         if self.pointList:

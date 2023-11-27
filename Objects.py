@@ -33,6 +33,8 @@ class Button(Object):
         self.gameManager = gameManager
         self.pressed = False
 
+        self.buttonSFX = pygame.mixer.Sound('Assets/SFX/Objects/SFX-Button.ogg')
+
         super().__init__('Assets/Sprites/Objects/button.png', (64,64), pos, 0)
 
     def Activate():
@@ -43,21 +45,38 @@ class Button(Object):
 
         if self.gameManager.player.rect.center == self.rect.center and not self.pressed:
             self.pressed = True
+            self.buttonSFX.play()
             for obj in self.link:
                 obj.Toggle()
-            self.image = self.sprites[1]
 
     def Draw(self, surface):
+        if self.pressed:
+            self.image = self.sprites[1]
+        else:
+            self.image = self.sprites[0]
+
         surface.blit(self.image, self.rect)
 
 class Laser(Object):
     def __init__(self, pos, rotation, initiallyActive, gameManager):
 
+        self.rotation = rotation
         self.initiallyActive = initiallyActive
         self.gameManager = gameManager
 
         if self.initiallyActive:
             self.Enable()
+
+        self.animator = Utilities.Animator({
+            'standard': {
+                'name': 'standard', #Nome da animação
+                'spritesheet': "Assets/Sprites/Objects/laser.png",
+                'size': (64, 64),
+                'speed': 0.1,
+            }
+        })
+
+        self.animator.SetAnimation('standard')
 
         super().__init__('Assets/Sprites/Objects/laser.png', (64,64), pos, rotation)
 
@@ -74,10 +93,94 @@ class Laser(Object):
             self.Enable()
 
     def Update(self):
+        self.animator.Update()
         if self.gameManager.player.rect.center == self.rect.center and self.active:
             self.gameManager.player.Die()
 
     def Draw(self, surface):
         if self.active:
-            surface.blit(self.image, self.rect)
-        
+            laserImg = self.animator.GetSprite()
+            laserImg = pygame.transform.rotate(laserImg, self.rotation)
+            surface.blit(laserImg, self.rect)
+
+class Portal(Object):
+    def __init__(self, color, pos, link, exit, gameManager):
+        self.color = color
+        self.gameManager = gameManager
+        self.link = link
+        self.exit = exit
+
+        self.portalSFX = pygame.mixer.Sound('Assets/SFX/Objects/SFX-Portal.ogg')
+
+        self.animation = {
+            'standard': {
+                'name': 'standard', #Nome da animação
+                'spritesheet': "Assets/Sprites/Objects/portal.png",
+                'size': (64, 64),
+                'speed': 0.2,
+            }
+        }
+
+        self.animator = Utilities.Animator(self.animation)
+        self.animator.SetAnimation('standard')
+        self.animator.ResumeAnimation()
+        super().__init__('Assets/Sprites/Objects/portal frame.png', (64,64), pos, 0)
+
+    def Update(self):
+        self.animator.Update()
+        if self.gameManager.player.rect.center == self.rect.center:
+            #pausa o jogo, apaga a pointlist e vai pra saida do link.
+            self.gameManager.player.canMove = False
+            self.gameManager.playMode = False
+            self.gameManager.pointHandler.pointList.clear()
+            self.gameManager.player.rect.x = self.link.exit[0]
+            self.gameManager.player.rect.y = self.link.exit[1]
+            self.portalSFX.play()
+    
+
+    def Draw(self, surface):
+        portalImg = self.animator.GetSprite().copy()
+        portalImg.fill(self.color, special_flags=pygame.BLEND_RGBA_MULT)
+        self.image.blit(portalImg, (0,0))
+        surface.blit(self.image, self.rect)
+
+class Spike(Object):
+    def __init__(self, pos, initiallyActive, gameManager):
+
+        self.initiallyActive = initiallyActive
+        self.gameManager = gameManager
+        self.active = initiallyActive
+        self.lastTurn = 0
+
+        self.spikeEnterSFX = pygame.mixer.Sound('Assets/SFX/Objects/SFX-SpikeEnter.ogg')
+        self.spikeExitSFX = pygame.mixer.Sound('Assets/SFX/Objects/SFX-SpikeExit.ogg')
+
+        super().__init__('Assets/Sprites/Objects/spike.png', (64,64), pos, 0)
+
+        if self.initiallyActive:
+            self.image = self.sprites[1]
+
+    def Toggle(self):
+        if self.active:
+            self.active = False
+            self.image = self.sprites[0]
+            self.spikeExitSFX.play()
+        else:
+            self.active = True
+            self.image = self.sprites[1]
+            self.spikeEnterSFX.play()
+
+    def Update(self):
+
+        if self.gameManager.runTimes != self.lastTurn:
+            self.lastTurn = self.gameManager.runTimes
+            self.Toggle()
+
+        if self.gameManager.events['space']:
+            self.Toggle()
+
+        if self.gameManager.player.rect.center == self.rect.center and self.active:
+            self.gameManager.player.Die()
+
+    def Draw(self, surface):
+        surface.blit(self.image, self.rect)

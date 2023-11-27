@@ -19,7 +19,7 @@
 <span class="moduletype">Script</span>  <div class="import">
 imports:
     <a href="#GameManager">GameManager</a>
- &#8226;   <a href="#GridHandler">GridHandler</a>
+ &#8226;   <a href="#Objects">Objects</a>
  &#8226;   <a href="#PointHandler">PointHandler</a>
  &#8226;   <a href="#ROBB9">ROBB9</a>
  &#8226;   <a href="#Tilemap">Tilemap</a>
@@ -416,17 +416,19 @@ imported by:
 </div>
 
 <div class="node">
-  <a name="GridHandler"></a>
-  <a target="code" href="///C:/Users/alepb/Desktop/Projetos/Py/SMAUG-2/GridHandler.py" type="text/plain"><tt>GridHandler</tt></a>
+  <a name="Objects"></a>
+  <a target="code" href="///C:/Users/alepb/Desktop/Projetos/Py/SMAUG-2/Objects.py" type="text/plain"><tt>Objects</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
 imports:
     <a href="#Utilities">Utilities</a>
  &#8226;   <a href="#pygame">pygame</a>
+ &#8226;   <a href="#sys">sys</a>
 
   </div>
   <div class="import">
 imported by:
-    <a href="#main.py">main.py</a>
+    <a href="#PointHandler">PointHandler</a>
+ &#8226;   <a href="#main.py">main.py</a>
 
   </div>
 
@@ -448,7 +450,8 @@ imported by:
   <a target="code" href="///C:/Users/alepb/Desktop/Projetos/Py/SMAUG-2/PointHandler.py" type="text/plain"><tt>PointHandler</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
 imports:
-    <a href="#Utilities">Utilities</a>
+    <a href="#Objects">Objects</a>
+ &#8226;   <a href="#Utilities">Utilities</a>
  &#8226;   <a href="#pygame">pygame</a>
 
   </div>
@@ -484,7 +487,6 @@ imported by:
 imports:
     <a href="#Utilities">Utilities</a>
  &#8226;   <a href="#pygame">pygame</a>
- &#8226;   <a href="#sys">sys</a>
 
   </div>
   <div class="import">
@@ -503,6 +505,7 @@ imports:
     <a href="#Utilities">Utilities</a>
  &#8226;   <a href="#pygame">pygame</a>
  &#8226;   <a href="#sys">sys</a>
+ &#8226;   <a href="#threading">threading</a>
  &#8226;   <a href="#time">time</a>
 
   </div>
@@ -519,13 +522,14 @@ imported by:
   <a target="code" href="///C:/Users/alepb/Desktop/Projetos/Py/SMAUG-2/Utilities.py" type="text/plain"><tt>Utilities</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
 imports:
-    <a href="#pygame">pygame</a>
+    <a href="#os">os</a>
+ &#8226;   <a href="#pygame">pygame</a>
  &#8226;   <a href="#sys">sys</a>
 
   </div>
   <div class="import">
 imported by:
-    <a href="#GridHandler">GridHandler</a>
+    <a href="#Objects">Objects</a>
  &#8226;   <a href="#PointHandler">PointHandler</a>
  &#8226;   <a href="#ROBB9">ROBB9</a>
  &#8226;   <a href="#Tilemap">Tilemap</a>
@@ -8999,7 +9003,8 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#_bootsubprocess">_bootsubprocess</a>
+    <a href="#Utilities">Utilities</a>
+ &#8226;   <a href="#_bootsubprocess">_bootsubprocess</a>
  &#8226;   <a href="#argparse">argparse</a>
  &#8226;   <a href="#asyncio.base_events">asyncio.base_events</a>
  &#8226;   <a href="#asyncio.coroutines">asyncio.coroutines</a>
@@ -11081,7 +11086,7 @@ imports:
   <div class="import">
 imported by:
     <a href="#GameManager">GameManager</a>
- &#8226;   <a href="#GridHandler">GridHandler</a>
+ &#8226;   <a href="#Objects">Objects</a>
  &#8226;   <a href="#PointHandler">PointHandler</a>
  &#8226;   <a href="#ROBB9">ROBB9</a>
  &#8226;   <a href="#Tilemap">Tilemap</a>
@@ -12945,7 +12950,7 @@ imported by:
   <a name="sys"></a>
   <tt>sys</tt> <span class="moduletype"><i>(builtin module)</i></span>  <div class="import">
 imported by:
-    <a href="#Tilemap">Tilemap</a>
+    <a href="#Objects">Objects</a>
  &#8226;   <a href="#UI">UI</a>
  &#8226;   <a href="#Utilities">Utilities</a>
  &#8226;   <a href="#_aix_support">_aix_support</a>
@@ -13258,7 +13263,8 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#_threading_local">_threading_local</a>
+    <a href="#UI">UI</a>
+ &#8226;   <a href="#_threading_local">_threading_local</a>
  &#8226;   <a href="#asyncio.base_events">asyncio.base_events</a>
  &#8226;   <a href="#asyncio.events">asyncio.events</a>
  &#8226;   <a href="#asyncio.mixins">asyncio.mixins</a>

@@ -1,4 +1,4 @@
-import pygame, time, Utilities, sys
+import pygame, time, Utilities, sys, threading
 
 verminVibes = "Assets/Fonts/Vermin Vibes 1989.ttf"
 kenneyPixel = "Assets/Fonts/Kenney Pixel.ttf"
@@ -153,6 +153,15 @@ class HUDCanvas():
 
         self.hudPanel = UIImage(pygame.image.load('Assets/Sprites/UI/HUD/hud panel.png').convert_alpha(), (0, self.screenY - 128))
 
+        self.helpBaloon = UIImage(pygame.image.load('Assets/Sprites/UI/HUD/baloon.png').convert_alpha(), (self.screenX - 364 - 128, self.screenY - 320))
+
+        self.help = False
+        #threading.Thread(target=self.HelpTimer).start()
+
+    def HelpTimer(self):
+        time.sleep(5)
+        self.help = False
+
     def DrawHUD(self, surface):
         self.hudSurface.fill((0, 255, 0))
 
@@ -167,6 +176,10 @@ class HUDCanvas():
 
         self.pointHudButton.DrawButton(self.hudSurface)
         self.creatorButton.DrawButton(self.hudSurface)
+
+        if self.help:
+            self.helpBaloon.DrawImage(self.hudSurface)
+            DrawText('Sempre que precisar de ajuda,\n clique aqui!', kenneyPixel, 48, (255, 255, 255), self.hudSurface, (self.screenX - 364, self.screenY - 320))
 
         DrawText(str(self.gameManager.speed) + 'x', kenneyPixel, 64, (255, 255, 255), self.hudSurface, (224, self.screenY - 32))
 
@@ -288,7 +301,7 @@ class MainMenuCanvas():
         self.settingsButton = UISpriteButton(self.settingsButtonSprites[0], (self.surfaceX / 2 - 128, self.surfaceY / 2 + 75), self.OnSettingsButtonClick, self.OnSettingsButtonHover)
         
         self.quitButtonSprites = Utilities.CutSpritesheet('Assets/Sprites/UI/quit btn.png', (256, 128))
-        self.quitButton = UISpriteButton(self.quitButtonSprites[0], (self.surfaceX / 2 - 128, self.surfaceY / 2 + 200), self.OnQuitButtonClick, self.OnQuitButtonHover)
+        self.quitButton = UISpriteButton(self.quitButtonSprites[0], (self.surfaceX / 2 - 128, self.surfaceY / 2 + 75), self.OnQuitButtonClick, self.OnQuitButtonHover)
 
     def OnStartButtonHover(self):
         self.selectSFX.play()
@@ -304,7 +317,7 @@ class MainMenuCanvas():
         pass
 
     def OnQuitButtonHover(self):
-        pass
+        self.selectSFX.play()
 
     def OnQuitButtonClick(self):
         sys.exit()
@@ -317,14 +330,14 @@ class MainMenuCanvas():
         self.logoImage.DrawImage(self.menuSurface)
 
         self.startButton.DrawButton(self.menuSurface)
-        self.settingsButton.DrawButton(self.menuSurface)
+        #self.settingsButton.DrawButton(self.menuSurface)
         self.quitButton.DrawButton(self.menuSurface)
 
         self.surface.blit(self.menuSurface, (0, 0))
 
     def Update(self):
         self.startButton.Update(self.inputs['leftClick'])
-        self.settingsButton.Update(self.inputs['leftClick'])
+        #self.settingsButton.Update(self.inputs['leftClick'])
         self.quitButton.Update(self.inputs['leftClick'])
 
 class Background():
@@ -385,7 +398,7 @@ class LevelCompleteCanvas():
         self.starsImage = UIImage(self.starsSprites[0], (self.surfaceX / 2 - 96, 200))
 
         self.pointsPlacedSprite = pygame.image.load('Assets/Sprites/UI/points placed.png').convert_alpha()
-        self.pointsPlacedImage = UIImage(self.pointsPlacedSprite, (self.surfaceX / 2 - 128, 200))
+        self.pointsPlacedImage = UIImage(self.pointsPlacedSprite, (128+64, 200))
 
         self.nextLevelBtnSprites = Utilities.CutSpritesheet('Assets/Sprites/UI/next btn.png', (256, 128))
         self.nextLevelBtn = UISpriteButton(self.nextLevelBtnSprites[0], (self.surfaceX / 2 + 32, self.surfaceY / 2 - 50), self.OnNextLevelButtonClick, self.OnNextLevelButtonHover)
@@ -394,7 +407,7 @@ class LevelCompleteCanvas():
         self.retryBtn = UISpriteButton(self.retryBtnSprites[0], (self.surfaceX / 2 - 288, self.surfaceY / 2 - 50), self.OnRetryButtonClick, self.OnRetryButtonHover)
 
         self.mainMenuBtnSprites = Utilities.CutSpritesheet('Assets/Sprites/UI/quit btn.png', (256, 128))
-        self.mainMenuBtn = UISpriteButton(self.mainMenuBtnSprites[0], (self.surfaceX / 2 - 288, self.surfaceY / 2 + 75), self.OnMainMenuButtonClick, self.OnMainMenuButtonHover)
+        self.mainMenuBtn = UISpriteButton(self.mainMenuBtnSprites[0], (self.surfaceX / 2 - 128, self.surfaceY / 2 + 75), self.OnMainMenuButtonClick, self.OnMainMenuButtonHover)
 
         self.helpBtnSprites = Utilities.CutSpritesheet('Assets/Sprites/UI/help btn.png', (256, 128))
         self.helpBtn = UISpriteButton(self.helpBtnSprites[0], (self.surfaceX / 2 + 32, self.surfaceY / 2 + 75), self.OnHelpButtonClick, self.OnHelpButtonHover)
@@ -403,7 +416,7 @@ class LevelCompleteCanvas():
         self.nextLevelBtn.Update(self.gameManager.events['leftClick'])
         self.mainMenuBtn.Update(self.gameManager.events['leftClick'])
         self.retryBtn.Update(self.gameManager.events['leftClick'])
-        self.helpBtn.Update(self.gameManager.events['leftClick'])
+        #self.helpBtn.Update(self.gameManager.events['leftClick'])
 
     def Draw(self, surface):
 
@@ -414,13 +427,13 @@ class LevelCompleteCanvas():
         self.starsImage.DrawImage(self.levelCompletePanel)
 
         self.pointsPlacedImage.DrawImage(self.levelCompletePanel)
-        DrawText(str(self.gameManager.pointsPlaced), kenneyPixel, 64, (255, 255, 255), self.levelCompletePanel, (self.surfaceX / 2 - 64, 200))
-        DrawText('Turnos: ' + str(self.gameManager.runTimes), kenneyPixel, 64, (255, 255, 255), self.levelCompletePanel, (self.surfaceX / 2, self.surfaceY / 2 + 300))
+        DrawText(str(self.gameManager.pointsPlaced), kenneyPixel, 64, (255, 255, 255), self.levelCompletePanel, (280, 240))
+        DrawText('Turnos: ' + str(self.gameManager.runTimes), kenneyPixel, 64, (255, 255, 255), self.levelCompletePanel, (1000, 240))
 
         self.nextLevelBtn.DrawButton(self.levelCompletePanel)
         self.mainMenuBtn.DrawButton(self.levelCompletePanel)
         self.retryBtn.DrawButton(self.levelCompletePanel)
-        self.helpBtn.DrawButton(self.levelCompletePanel)
+        #self.helpBtn.DrawButton(self.levelCompletePanel)
 
         surface.blit(self.levelCompletePanel, (0, 0))
 

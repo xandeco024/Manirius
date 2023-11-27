@@ -11,7 +11,8 @@ import Tilemap
 pygame.init()
 pygame.mixer.init()
 screen = pygame.display.set_mode((1280, 720))
-pygame.display.set_caption("Mánirius")
+pygame.display.set_icon(pygame.image.load('Assets/icon.jpeg'))
+pygame.display.set_caption("Manirius")
 clock = pygame.time.Clock()
 #endregion
 
@@ -50,7 +51,7 @@ class MainMenu(Scene):
         super().__init__('mainMenu', surface, clock, events, sceneManager)
 
         pygame.mixer.music.load('Assets/BGM/menu1.mp3')
-        #pygame.mixer.music.play(-1)
+        pygame.mixer.music.play(-1)
 
         self.mainMenuCanvas = MainMenuCanvas(self.surface, self.events, self.sceneManager)
 
@@ -93,6 +94,8 @@ class PlayableScene(Scene): #CENA JOGAVEL
         self.lasers = []
         self.buttons = []
         self.portals = []
+        self.decorativeObjects = []
+        self.spikes = []
 
     def HandleProgess(self):
         if self.player.rect.x == self.winPos[0] and self.player.rect.y == self.winPos[1]:
@@ -100,21 +103,6 @@ class PlayableScene(Scene): #CENA JOGAVEL
 
         if self.complete:
             self.levelCompleteCanvas.PlayLevelCompleteSFX()
-
-    def Draw(self, surface):
-        self.background.DrawBackground(surface)
-
-        self.level.Draw(self.gameSurface)
-        self.pointHandler.Draw(self.gameSurface)
-
-        self.player.Draw(self.gameSurface)
-
-        surface.blit(self.gameSurface, (320,0))
-
-        self.hudCanvas.DrawHUD(surface)
-
-        if self.complete:
-            self.levelCompleteCanvas.Draw(surface)
 
     def Update(self):
         super().Update()
@@ -133,8 +121,49 @@ class PlayableScene(Scene): #CENA JOGAVEL
             for laser in self.lasers:
                 laser.Update()
 
+        if self.portals:
+            for portal in self.portals:
+                portal.Update()
+
+        if self.spikes:
+            for spike in self.spikes:
+                spike.Update()
+
         if self.complete:
             self.levelCompleteCanvas.Update()
+
+    def Draw(self, surface):
+        surface.fill((0, 0, 0))
+
+        self.background.DrawBackground(surface)
+
+        self.level.Draw(self.gameSurface)
+
+        for button in self.buttons:
+            button.Draw(self.gameSurface)
+
+        for laser in self.lasers:
+            laser.Draw(self.gameSurface)
+
+        for portal in self.portals:
+            portal.Draw(self.gameSurface)
+
+        for decoObj in self.decorativeObjects:
+            decoObj.Draw(self.gameSurface)
+
+        for spike in self.spikes:
+            spike.Draw(self.gameSurface)
+
+        self.pointHandler.Draw(self.gameSurface)
+
+        self.player.Draw(self.gameSurface)
+
+        surface.blit(self.gameSurface, (320,0))
+
+        self.hudCanvas.DrawHUD(surface)
+
+        if self.complete:
+            self.levelCompleteCanvas.Draw(surface)
 
 class Level1(PlayableScene):
     def __init__(self, surface, clock, events, sceneManager):
@@ -145,32 +174,36 @@ class Level1(PlayableScene):
         nextLevel = 'level2'
 
         mapArray = [
-            [31,22,22,35,25,22,35,22,33,12],
+            [31,22,22,22,22,22,22,22,33,12],
             [13,42,42,42,42,42,42,42,11,12],
-            [16,42,42,42,42,42,42,42,11,12],
+            [13,42,42,42,42,42,42,42,11,12],
             [13,42,42,42,42,42,42,42,11,12],
             [13,42,42,42,61,42,42,42,11,12],
-            [44,42,42,42,71,42,42,42,11,12],
-            [44,42,42,42,71,42,42,42,11,12],
-            [16,42,42,42,71,42,42,42,21,33],
+            [13,42,42,42,71,42,42,42,11,12],
+            [13,42,42,42,71,42,42,42,11,12],
+            [13,42,42,42,71,42,42,42,21,33],
             [13,42,42,42,71,42,42,42,42,43],
-            [51, 2, 5, 2,62, 2, 2, 2, 2,53]
+            [51, 2, 2, 2,62, 2, 2, 2, 2,53]
         ]
 
         #Particularidades do lvl
 
-        #self.decoTable = Objects.DecorativeObject('Assets/Sprites/Objects/table.png', (128, 64), (128, 64), -180)
-        #self.decoPanel = Objects.DecorativeObject('Assets/Sprites/Objects/panel.png', (64, 64), (64, 0), 90)
-        #self.decoNiche = Objects.DecorativeObject('Assets/Sprites/Objects/nicho em ingles.png', (64, 64), (256, 0), 0)
-        #self.decoPc = Objects.DecorativeObject('Assets/Sprites/Objects/pc.png', (64, 64), (512-128, 0), 0)
-
         super().__init__('level1', playerStartPos, winPos, nextLevel, mapArray, surface, clock, events, sceneManager)
+
+        self.decorativeObjects = [
+            Objects.DecorativeObject('Assets/Sprites/Objects/arrival.png', (64, 64), self.winPos, 0),
+            Objects.DecorativeObject('Assets/Sprites/Objects/banana.png', (64, 128), (6*64, 0), 0),
+            Objects.DecorativeObject('Assets/Sprites/Objects/pc.png', (64, 128), (4*64, 0), 0),
+            Objects.DecorativeObject('Assets/Sprites/Objects/picture frame.png', (64, 64), (0, 4*64), 90),
+            Objects.DecorativeObject('Assets/Sprites/Objects/door.png', (64, 64), (8*64, 5*64), -90),
+            Objects.DecorativeObject('Assets/Sprites/Objects/door.png', (64, 64), (8*64, 3*64), -90),
+            Objects.DecorativeObject('Assets/Sprites/Objects/table objects.png', (64, 128), (4*64, 4*64), 0),
+        ]
 
     def Update(self):
         super().Update()
 
     def Draw(self):
-        self.surface.fill((0, 0, 0))
         super().Draw(self.surface)
 
 class Level2(PlayableScene):
@@ -182,16 +215,16 @@ class Level2(PlayableScene):
         nextLevel = 'level3'
 
         mapArray = [
-            [31,22,22,22,22,22,22,32,22,33],
-            [13,42,42,42,42,71,42,42,42,11],
-            [13,42,42,42,42,71,42,42,42,11],
-            [13,96,42,94,95,92,42,42,42,11],
-            [13,42,42,42,42,71,42,42,42,11],
-            [13,42,42,42,42,81,42,42,42,11],
+            [31,22,22,22,63,22,22,32,22,33],
+            [13,42,42,42,71,45,42,42,42,11],
+            [13,42,42,42,71,45,42,42,42,11],
+            [72,96,42,94,92,42,42,42,42,11],
+            [13,42,42,42,71,42,42,42,42,11],
+            [13,42,42,42,85,95,96,42,94,73],
             [13,42,42,42,42,42,42,42,42,11],
-            [13,42,42,42,42, 1, 2, 2, 2,53],
-            [13,42,42,42,42,11,12,12,12,12],
-            [51, 2, 2, 2, 2,53,12,12,12,12]
+            [13,42,42,42,42,42,42,42,42,11],
+            [13,42,42,42,42,42,42,42,42,11],
+            [51, 2, 2, 2, 2, 2, 2, 2, 2,53]
         ]
 
 
@@ -200,40 +233,33 @@ class Level2(PlayableScene):
         #Particularidades do lvl
 
         self.lasers = [
-            Objects.Laser((320, 384), 90, True, self.gameManager)
+            Objects.Laser((320, 384), 90, True, self.gameManager),
+            Objects.Laser((320, 448), 90, True, self.gameManager),
+            Objects.Laser((320, 512), 90, True, self.gameManager),
             ]
         
         self.buttons = [
             Objects.Button((128, 64), self.lasers, self.gameManager)
         ]
 
+        self.decorativeObjects = [
+            Objects.DecorativeObject('Assets/Sprites/Objects/arrival.png', (64, 64), self.winPos, 0),
+            Objects.DecorativeObject('Assets/Sprites/Objects/table.png', (64, 128), (5*64, 2*64), 180),
+            Objects.DecorativeObject('Assets/Sprites/Objects/corner tube 2.png', (64, 64), (4*64, 5*64), -90),
+            #Objects.DecorativeObject('Assets/Sprites/Objects/pipes.png', (64, 128), (8*64, 0*64), 0),
+            #Objects.DecorativeObject('Assets/Sprites/Objects/pipes.png', (64, 128), (6*64, 0*64), 0),
+            #Objects.DecorativeObject('Assets/Sprites/Objects/pipes.png', (64, 128), (0*64, 4*64), 90),
+            #Objects.DecorativeObject('Assets/Sprites/Objects/pipes.png', (64, 128), (0*64, 6*64), 90),
+            #Objects.DecorativeObject('Assets/Sprites/Objects/pipes.png', (64, 128), (0*64, 8*64), 90),
+            Objects.DecorativeObject('Assets/Sprites/Objects/panel.png', (64, 64), (9*64, 7*64), -90),
+            Objects.DecorativeObject('Assets/Sprites/Objects/manirius frame.png', (64, 64), (2*64, 9*64), 180),
+        ]
+
     def Update(self):
         super().Update()
 
     def Draw(self):
-        self.surface.fill((0, 0, 0))
-        #super().Draw(self.surface) #requer organizacao na renderizacao e tals
-
-        self.background.DrawBackground(self.surface)
-
-        self.level.Draw(self.gameSurface)
-
-        for button in self.buttons:
-            button.Draw(self.gameSurface)
-
-        for laser in self.lasers:
-            laser.Draw(self.gameSurface)
-
-        self.pointHandler.Draw(self.gameSurface)
-
-        self.player.Draw(self.gameSurface)
-
-        self.surface.blit(self.gameSurface, (320,0))
-
-        self.hudCanvas.DrawHUD(self.surface)
-
-        if self.complete:
-            self.levelCompleteCanvas.Draw(self.surface)
+        super().Draw(self.surface)
 
 class Level3(PlayableScene):
     def __init__(self, surface, clock, events, sceneManager):
@@ -284,90 +310,121 @@ class Level3(PlayableScene):
             Objects.Button((1 * 64, 64), [self.lasers[12], self.lasers[13]], self.gameManager)
         ]
 
+        self.decorativeObjects = [
+            Objects.DecorativeObject('Assets/Sprites/Objects/arrival.png', (64, 64), self.winPos, 0),
+        ]
+
     def Update(self):
         super().Update()
 
     def Draw(self):
-        self.surface.fill((0, 0, 0))
-        #super().Draw(self.surface) #requer organizacao na renderizacao e tals
-
-        self.background.DrawBackground(self.surface)
-
-        self.level.Draw(self.gameSurface)
-
-        for button in self.buttons:
-            button.Draw(self.gameSurface)
-
-        for laser in self.lasers:
-            laser.Draw(self.gameSurface)
-
-        self.pointHandler.Draw(self.gameSurface)
-
-        self.player.Draw(self.gameSurface)
-
-        self.surface.blit(self.gameSurface, (320,0))
-
-        self.hudCanvas.DrawHUD(self.surface)
-
-        if self.complete:
-            self.levelCompleteCanvas.Draw(self.surface)
+        super().Draw(self.surface)
 
 class Level4(PlayableScene):
     def __init__(self, surface, clock, events, sceneManager):
 
         #level 4 basics
         playerStartPos = (64, 512)
-        winPos = (8*64, 8*64)
-        nextLevel = 'level4'
+        winPos = (8*64, 2*64)
+        nextLevel = 'level5'
 
         mapArray = [
             [31,22,22,22,22,22,22,22,22,33],
-            [13,20,42,42,42,30,42,30,42,11],
-            [13,42,42,42,42,30,42,30,42,43],
-            [13,42,42,42,42,30,42,30,42,11],
-            [13,42,42,42,75,95,95,95,95,11],
-            [13,42,42,10,71,10,42,42,42,11],
-            [13,42,42,42,71,42,42,42,42,11],
-            [13,42,42,42,71,42,42,42,42,11],
-            [13,42,42,42,71,42,42,42,10,11],
-            [51,2,2,2,2,2,2,2,2,53]
+            [13,42,42,42,42,42,42,42,42,11],
+            [13,42,42,42,42,42,42,42,42,43],
+            [13,42,42,42,42,42,42,42,42,11],
+            [13,42,42,42, 1, 2, 2, 2, 2,53],
+            [13,42,42,42,11,31,22,22,22,33],
+            [13,42,42,42,11,13,42,42,42,11],
+            [13,42,42,42,11,13,42,42,42,11],
+            [13,42,42,42,11,13,42,42,42,11],
+            [51, 2, 2, 2,53, 51, 2, 2, 2,53]
         ]
 
         #Particularidades do lvl
 
         super().__init__('level4', playerStartPos, winPos, nextLevel, mapArray, surface, clock, events, sceneManager)
 
+        self.lasers = [
+            Objects.Laser((7 * 64, 1 * 64), 90, True, self.gameManager),
+            Objects.Laser((7 * 64, 2 * 64), 90, True, self.gameManager),
+            Objects.Laser((7 * 64, 3 * 64), 90, True, self.gameManager),
+
+            Objects.Laser((5 * 64, 1 * 64), 90, True, self.gameManager),
+            Objects.Laser((5 * 64, 2 * 64), 90, True, self.gameManager),
+            Objects.Laser((5 * 64, 3 * 64), 90, True, self.gameManager),
+        ]
+
+        self.buttons = [
+            Objects.Button((3 * 64, 5 * 64), [self.lasers[0], self.lasers[1], self.lasers[2]], self.gameManager),
+            Objects.Button((6 * 64, 6 * 64), [self.lasers[3], self.lasers[4], self.lasers[5]], self.gameManager)
+        ]
+
+        self.decorativeObjects = [
+            Objects.DecorativeObject('Assets/Sprites/Objects/arrival.png', (64, 64), self.winPos, 0),
+        ]
+
+        self.portals = [
+            Objects.Portal((250,130,25, 255),(1 * 64, 2 * 64), None, (2 * 64, 2 * 64), self.gameManager),
+            Objects.Portal((250,130,25, 255),(8 * 64, 8 * 64), None, (8 * 64, 7 * 64), self.gameManager),
+        ]
+
+        self.portals[0].link = self.portals[1]
+        self.portals[1].link = self.portals[0]
+
     def Update(self):
         super().Update()
 
     def Draw(self):
-        self.surface.fill((0, 0, 0))
         super().Draw(self.surface)
 
 class Level5(PlayableScene):
     def __init__(self, surface, clock, events, sceneManager):
 
         #level 5 basics
-        playerStartPos = (64, 512)
-        winPos = (8*64, 8*64)
+        playerStartPos = (8 * 64, 2 * 64)
+        winPos = (1*64, 8*64)
         nextLevel = 'mainMenu'
 
         mapArray = [
             [31,22,22,22,22,22,22,22,22,33],
-            [13,20,42,42,42,42,42,42,42,11],
-            [13,20,42,42,42,42,42,42,42,11],
-            [13,95,95,95,95,95,95,95,95,11],
-            [13,20,42,40,42,42,40,42,20,11],
-            [51, 2, 2, 3,42,42, 1, 2, 2,53],
-            [12,12,12,13,42,42,11,12,12,12],
-            [12,12,12,13,42,42,11,12,12,12],
-            [12,12,12,51, 2,55,53,12,12,12],
-            [12,12,12,12,12,12,12,12,12,12]
+            [13,42,42,42,42,42,42,42,42,11],
+            [13,42,42,42,42,42,42,42,42,11],
+            [13,42,42,42,42,42,42,42,42,11],
+            [51, 2, 2, 2, 2, 2, 2, 2, 2,53],
+            [31,22,22,22,22,22,22,22,22,33],
+            [13,42,42,42,42,42,42,42,42,11],
+            [72,95,95,96,42,42,94,95,95,73],
+            [41,42,42,42,42,42,42,42,42,11],
+            [51, 2, 2, 2, 2, 2, 2, 2, 2,53]
         ]
 
         #Particularidades do lvl
 
         super().__init__('level5', playerStartPos, winPos, nextLevel, mapArray, surface, clock, events, sceneManager)
+
+        self.portals = [
+            Objects.Portal((250,130,25, 255),(1 * 64, 1 * 64), None, (2 * 64, 1 * 64), self.gameManager),
+            Objects.Portal((25,130,250, 255),(1 * 64, 3 * 64), None, (2 * 64, 3 * 64), self.gameManager),
+
+            Objects.Portal((250,130,25, 255),(1 * 64, 6 * 64), None, (2 * 64, 6 * 64), self.gameManager),
+            Objects.Portal((25,130,250, 255),(8 * 64, 6 * 64), None, (7 * 64, 6 * 64), self.gameManager),
+        ]
+
+        self.portals[0].link = self.portals[2]
+        self.portals[2].link = self.portals[0]
+
+        self.portals[1].link = self.portals[3]
+        self.portals[3].link = self.portals[1]
+
+        self.decorativeObjects = [
+            Objects.DecorativeObject('Assets/Sprites/Objects/arrival.png', (64, 64), self.winPos, 0),
+        ]
+
+        self.spikes = [
+            Objects.Spike((3 * 64, 6 * 64), True, self.gameManager),
+            Objects.Spike((6 * 64, 6 * 64), False, self.gameManager),
+        ]
 
     def Update(self):
         super().Update()
@@ -412,30 +469,11 @@ class SceneManager():
 
 events = {'space': False, 'rightClick': False, 'leftClick': False, 'escape': False, 'tab': False, 'one': False}
 
-sceneManager = SceneManager('level2')
-
-#splashScreen = SplashScreen(screen, events, sceneManager)
-
-#mainMenu = MainMenu(screen, events, sceneManager)
-
-#level1 = Level1(screen, clock, events, sceneManager)
-#level2 = Level2(screen, clock, events, sceneManager)
-#level3 = Level3(screen, clock, events, sceneManager)
-#level4 = Level4(screen, clock, events, sceneManager)
-#level5 = Level5(screen, clock, events, sceneManager)
-
-#scenes = {'splashScreen': splashScreen, 'mainMenu': mainMenu, 'level1': level1, 'level2': level2, 'level3': level3, 'level4': level4, 'level5': level5}
+sceneManager = SceneManager('splashScreen')
 
 async def main():
     while True:
         EventCheck(events)
-        #scenes[sceneManager.GetScene()].Update()
-        #scenes[sceneManager.GetScene()].Draw()
-        #if sceneManager.GetScene() != 'mainMenu' and sceneManager.GetScene() != 'splashScreen':
-        #    clock.tick(scenes[sceneManager.GetScene()].gameManager.clockTick)
-        #else:
-        #    clock.tick(60)
-
         sceneManager.GetScene().Update()
         sceneManager.GetScene().Draw()
         clock.tick(sceneManager.GetScene().clockTick)

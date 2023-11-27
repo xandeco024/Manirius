@@ -47,7 +47,9 @@ class Player(pygame.sprite.Sprite): #Classe do player
         }
 
         self.animator = Utilities.Animator(self.animations)
-        self.animator.SetAnimation('sliding')
+        self.animator.SetAnimation('idle')
+
+        self.slidingSFX = pygame.mixer.Sound('Assets/SFX/ROBB9/SFX-Sliding.ogg')
 
     def HandleAnimations(self):
         animation, done = self.animator.GetAnimation()
@@ -60,7 +62,6 @@ class Player(pygame.sprite.Sprite): #Classe do player
             self.animator.SetAnimation('sliding')
 
         if self.dead and animation != 'dying':
-            print('marco')
             self.animator.SetAnimation('dying')
 
         if animation == 'dying' and done:
@@ -108,7 +109,6 @@ class Player(pygame.sprite.Sprite): #Classe do player
 
         if self.canMove:
             self.MovePlayer()
-        print(self.canMove)
 
         #self.HandleAnimations()
         self.animator.Update()
@@ -125,7 +125,6 @@ class Player(pygame.sprite.Sprite): #Classe do player
         self.direction = [0,0]
 
     def Die(self):
-        print('polo')
         if not self.dead:
             self.dead = True
             self.direction = [0,0]
