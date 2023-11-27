@@ -3,6 +3,8 @@ import pygame, sys, Utilities
 class Object(pygame.sprite.Sprite):
     def __init__(self, spritesheetPath, size, pos, rotation):
 
+        self.size = size
+        self.pos = pos
         self.sprites = Utilities.CutSpritesheet(spritesheetPath, size)
         self.image = self.sprites[0]
         self.image = pygame.transform.rotate(self.image, rotation)
@@ -16,16 +18,17 @@ class PointObj(Object):
         
         super().__init__('Assets/Sprites/Objects/point.png', (64,64), pos, 0)
 
-    #banana
-
 class DecorativeObject(Object):
     def __init__(self, spritesheetPath, size, pos, rotation):
         self.pos = pos
         super().__init__(spritesheetPath, size, pos, rotation)
 
     def Draw(self, surface):
-        surface.blit(self.image, self.pos)    
-    #banana
+        if self.image is None:
+            self.image = pygame.surface.Surface(self.size) 
+            self.image.fill((0,0,0))
+        else:
+            surface.blit(self.image, self.pos)
 
 class Button(Object):
     def __init__(self, pos, link, gameManager):

@@ -1,5 +1,4 @@
-import pygame, time, Utilities, sys, threading
-
+import pygame, time, Utilities, sys
 verminVibes = "Assets/Fonts/Vermin Vibes 1989.ttf"
 kenneyPixel = "Assets/Fonts/Kenney Pixel.ttf"
 
@@ -155,12 +154,6 @@ class HUDCanvas():
 
         self.helpBaloon = UIImage(pygame.image.load('Assets/Sprites/UI/HUD/baloon.png').convert_alpha(), (self.screenX - 364 - 128, self.screenY - 320))
 
-        self.help = False
-        #threading.Thread(target=self.HelpTimer).start()
-
-    def HelpTimer(self):
-        time.sleep(5)
-        self.help = False
 
     def DrawHUD(self, surface):
         self.hudSurface.fill((0, 255, 0))
@@ -176,10 +169,6 @@ class HUDCanvas():
 
         self.pointHudButton.DrawButton(self.hudSurface)
         self.creatorButton.DrawButton(self.hudSurface)
-
-        if self.help:
-            self.helpBaloon.DrawImage(self.hudSurface)
-            DrawText('Sempre que precisar de ajuda,\n clique aqui!', kenneyPixel, 48, (255, 255, 255), self.hudSurface, (self.screenX - 364, self.screenY - 320))
 
         DrawText(str(self.gameManager.speed) + 'x', kenneyPixel, 64, (255, 255, 255), self.hudSurface, (224, self.screenY - 32))
 
